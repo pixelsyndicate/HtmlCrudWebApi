@@ -13,6 +13,8 @@ namespace webdemo
         {
             config.Routes.Clear(); // clear in the event there's defaults set by .net
 
+           // config.MapHttpAttributeRoutes();
+
             config.Routes.MapHttpRoute(
                 name: "DefaultApi",
                 routeTemplate: "api/{controller}/{id}",

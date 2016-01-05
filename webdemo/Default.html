@@ -36,7 +36,7 @@
         </div>
         <div class="row">
             <div class="col-sm-6">
-                <div class="panel panel-primary">
+                <div class="panel panel-primary" id="editPanel">
                     <div class="panel-heading">
                         Product Information
                     </div>
@@ -59,6 +59,7 @@
                         <div class="row">
                             <div class="col-xs-12">
                                 <button type="button" id="updateButton" class="btn btn-primary" onclick="updateClick();">Add</button>
+                                <button type="button" id="cancelButton" class="btn btn-primary" onclick="cancelClick();">Cancel</button>
                             </div>
                         </div>
                     </div>
@@ -68,10 +69,22 @@
     </div>
 
     <script>
+
+        // each of the names in this javascript object needs to be spelled exactly the same as the properties in the product class created in C# to be maped by the Web Api engine.
+        // this can be instatiated by JS by calling Product = new Object();
+        var Product = {
+            ProductId: 0,
+            ProductName: "",
+            IntroductionDate: "",
+            Url: ""
+        }
+
+
         // todo: handle the click event on Update button
         function updateClick() {
             // build project object from inputs
             Product = new Object();
+           // Product.ProductId = $("#productid").val();
             Product.ProductName = $("#productname").val();
             Product.IntroductionDate = $("#introdate").val();
             Product.Url = $("#url").val();
@@ -85,18 +98,19 @@
 
         // todo: handle click event on Add button
         function addClick() {
+            $("#editPanel").removeClass("hidden");
+            $("#addButton").addClass("hidden");
             $("#updateButton").text("Add");
             formClear();
         }
 
-        // each of the names in this javascript object needs to be spelled exactly the same as the properties in the product class created in C# to be maped by the Web Api engine.
-        // this can be instatiated by JS by calling Product = new Object();
-        var Product = {
-            ProductId: 0,
-            ProductName: "",
-            IntroductionDate: "",
-            Url: ""
+        function cancelClick() {
+            formClear();
+            $("#editPanel").addClass("hidden");
+            $("#addButton").removeClass("hidden");
         }
+
+       
 
         // use ajax to call post method of webapi
         // set type to POST
@@ -105,13 +119,15 @@
         function productAdd(product) {
             $.ajax({
                 url: "/api/Product",
-                type: "Post",
+                type: "POST",
                 contentType: "application/json;charset=utf-8",
                 data: JSON.stringify(product),
                 success: function (product) {
+                    console.log(product);
                     productAddSuccess(product);
                 },
                 error: function (request, message, error) {
+                    console.log(product);
                     handleException(request, message, error);
                 }
             });
@@ -122,10 +138,13 @@
                 url: "/api/Product",
                 type: "PUT",
                 contentType: "application/json;charset=utf-8",
+                data: JSON.stringify(product),
                 success: function (product) {
+                    console.log(product);
                     productUpdateSuccess(product);
                 },
                 error: function (request, message, error) {
+                    console.log(product);
                     handleException(request, message, error);
                 }
             });
@@ -174,16 +193,21 @@
             // call web api to get a single product
             $.ajax(
            {
-               url: 'api/Product/' + id,
+               url: '/api/Product/' + id,
                type: 'GET',
                dataType: 'json',
                success: function (product) {
-
+                   console.log(product);
                    productToFields(product);
+
+                   $("#editPanel").removeClass("hidden");
+                   $("#addButton").addClass("hidden");
+                   
                    // change the update button text
                    $("#updateButton").text("Update");
                },
                error: function (request, message, error) {
+                   console.log("Product Id: " + id);
                    handleException(request, message, error);
                }
            });
@@ -255,12 +279,14 @@
             if (request.responseJSON != null) {
                 msg += "Message: " + request.responseJSON.Message + "\n";
             }
+            console.log(msg);
             alert(msg);
         }
 
         // call the product list function after the webpage loads
         $(document).ready(function () {
             productList();
+            $("#editPanel").addClass("hidden");
         });
 
     </script>

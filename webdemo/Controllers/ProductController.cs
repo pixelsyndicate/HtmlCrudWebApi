@@ -71,7 +71,7 @@ namespace webdemo.Controllers
             return ret;
         }
 
-
+        [Route("/api/Product")]
         [HttpPut]
         public IHttpActionResult Put(int id, Product product)
         {
