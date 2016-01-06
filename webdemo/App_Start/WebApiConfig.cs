@@ -13,7 +13,9 @@ namespace webdemo
         {
             config.Routes.Clear(); // clear in the event there's defaults set by .net
 
-           // config.MapHttpAttributeRoutes();
+            // New code - added to enable cross-? didn't work
+            // config.EnableCors();
+            // config.MapHttpAttributeRoutes();
 
             config.Routes.MapHttpRoute(
                 name: "DefaultApi",

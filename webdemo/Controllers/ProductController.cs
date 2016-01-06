@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http;
+using System.Web.Http.Cors;
 using webdemo.Models;
 
 namespace webdemo.Controllers
 {
+    //[EnableCors(origins: "http://localhost:62271", headers: "*", methods: "*")]
     public class ProductController : ApiController
     {
         // GET: api/Product

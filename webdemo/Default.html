@@ -81,7 +81,8 @@
         }
 
 
-        // todo: handle the click event on Update button
+        // CLICK EVENT HANDLERS
+
         function updateClick() {
             // build project object from inputs
             Product = new Object();
@@ -97,7 +98,6 @@
             }
         }
 
-        // todo: handle click event on Add button
         function addClick() {
             $("#editPanel").removeClass("hidden");
             $("#addButton").addClass("hidden");
@@ -111,18 +111,15 @@
             $("#addButton").removeClass("hidden");
         }
 
+        // CRUD OPERATIONS
 
 
-        // use ajax to call post method of webapi
-        // set type to POST
-        // add contentType property to specify i'm passing JSON
-        // add data property to hold the serized json
         function productAdd(product) {
             $.ajax({
-                url: "/api/Product",
-                type: "POST",
-                contentType: "application/json;charset=utf-8",
-                data: JSON.stringify(product),
+                url: "/api/Product", // use ajax to call post method of webapi
+                type: "POST", // set type to POST
+                contentType: "application/json;charset=utf-8", // add contentType property to specify i'm passing JSON
+                data: JSON.stringify(product), // add data property to hold the serized json
                 success: function (product) {
                     console.log(product);
                     productAddSuccess(product);
@@ -136,16 +133,82 @@
 
         function productUpdate(product) {
             $.ajax({
-                url: "/api/Product",
-                type: "PUT",
-                contentType: "application/json;charset=utf-8",
-                data: JSON.stringify(product),
+                url: "/api/Product", // use ajax to call put method of webapi
+                type: "PUT", // set type to PUT
+                contentType: "application/json;charset=utf-8", // add contentType property to specify i'm passing JSON
+                data: JSON.stringify(product), // add data property to hold the serized json
                 success: function (product) {
                     console.log(product);
                     productUpdateSuccess(product);
                 },
                 error: function (request, message, error) {
                     console.log(product);
+                    handleException(request, message, error);
+                }
+            });
+        }
+
+        function productDelete(ctl) {
+            // get the product id from the data- attribute
+            var id = $(ctl).data("id");
+
+            // call webapi to delete the product
+            $.ajax({
+                url: "/api/Product/" + id,
+                type: "DELETE",
+                success: function (product) {
+                    $(ctl).parents("tr").remove();
+                },
+                error: function (request, message, error) {
+                    console.log("Product Id: " + id);
+                    handleException(request, message, error);
+                }
+            });
+        }
+
+        function productGet(ctl) {
+            // get the product id from the data- attribute
+            var id = $(ctl).data("id");
+
+            // store product id in the hidden field
+            $("#productid").val(id);
+
+            // call web api to get a single product
+            $.ajax(
+           {
+               url: '/api/Product/' + id,
+               type: 'GET',
+               dataType: 'json',
+               success: function (product) {
+                   console.log(product);
+                   productToFields(product);
+
+                   $("#editPanel").removeClass("hidden");
+                   $("#addButton").addClass("hidden");
+
+                   // change the update button text
+                   $("#updateButton").text("Update");
+               },
+               error: function (request, message, error) {
+                   console.log("Product Id: " + id);
+                   handleException(request, message, error);
+               }
+           });
+
+        }
+
+        function productList() {
+
+            // call web api to get list of products
+            $.ajax(
+            {
+                url: '/api/Product/',
+                type: 'GET',
+                dataType: 'json',
+                success: function (products) {
+                    productListSuccess(products);
+                },
+                error: function (request, message, error) {
                     handleException(request, message, error);
                 }
             });
@@ -195,54 +258,7 @@
             return ret;
         }
 
-        function productDelete(ctl) {
-            // get the product id from the data- attribute
-            var id = $(ctl).data("id");
 
-            // call webapi to delete the product
-            $.ajax({
-                url: "/api/Product/" + id,
-                type: "DELETE",
-                success: function(product) {
-                    $(ctl).parents("tr").remove();
-                },
-                error: function (request, message, error) {
-                    console.log("Product Id: " + id);
-                    handleException(request, message, error);
-                }
-            });
-        }
-
-        function productGet(ctl) {
-            // get the product id from the data- attribute
-            var id = $(ctl).data("id");
-
-            // store product id in the hidden field
-            $("#productid").val(id);
-
-            // call web api to get a single product
-            $.ajax(
-           {
-               url: '/api/Product/' + id,
-               type: 'GET',
-               dataType: 'json',
-               success: function (product) {
-                   console.log(product);
-                   productToFields(product);
-
-                   $("#editPanel").removeClass("hidden");
-                   $("#addButton").addClass("hidden");
-
-                   // change the update button text
-                   $("#updateButton").text("Update");
-               },
-               error: function (request, message, error) {
-                   console.log("Product Id: " + id);
-                   handleException(request, message, error);
-               }
-           });
-
-        }
 
         function productToFields(product) {
             $("#productname").val(product.ProductName);
@@ -250,22 +266,7 @@
             $("#url").val(product.Url);
         }
 
-        function productList() {
 
-            // call web api to get list of products
-            $.ajax(
-            {
-                url: 'api/Product/',
-                type: 'GET',
-                dataType: 'json',
-                success: function (products) {
-                    productListSuccess(products);
-                },
-                error: function (request, message, error) {
-                    handleException(request, message, error);
-                }
-            });
-        }
 
         function productAddSuccess(product) {
             productAddRow(product);
