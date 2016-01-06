@@ -80,6 +80,8 @@
             Url: ""
         }
 
+        var productsCollection = [];
+
 
         // CLICK EVENT HANDLERS
 
@@ -96,6 +98,8 @@
             } else {
                 productUpdate(Product);
             }
+
+            $("#addButton").removeClass("hidden");
         }
 
         function addClick() {
@@ -121,7 +125,12 @@
                 contentType: "application/json;charset=utf-8", // add contentType property to specify i'm passing JSON
                 data: JSON.stringify(product), // add data property to hold the serized json
                 success: function (product) {
-                    console.log(product);
+                    // add current product to local storage
+                    productsCollection.push(product);
+                    // saveToStorage("products", productsCollection);
+                    // try to save products to session
+                    saveToSession(productsCollection);
+                    // console.log(JSON.stringify(product));
                     productAddSuccess(product);
                 },
                 error: function (request, message, error) {
@@ -138,7 +147,22 @@
                 contentType: "application/json;charset=utf-8", // add contentType property to specify i'm passing JSON
                 data: JSON.stringify(product), // add data property to hold the serized json
                 success: function (product) {
-                    console.log(product);
+                    // update the object in the local collection
+                    $.each(productsCollection, function () {
+                        if (this.ProductId == product.ProductId) {
+                            this.ProductName = product.ProductName;
+                            this.Url = product.Url;
+                            this.IntroductionDate = product.IntroductionDate;
+                        }
+                    });
+
+                    // save the collection again
+                    saveToStorage("products", productsCollection);
+
+                    // try to save products to session
+                    saveToSession(productsCollection);
+
+                    console.log("updated with : " + JSON.stringify(product));
                     productUpdateSuccess(product);
                 },
                 error: function (request, message, error) {
@@ -157,6 +181,18 @@
                 url: "/api/Product/" + id,
                 type: "DELETE",
                 success: function (product) {
+                    // productsCollection = getFromStorage("products");
+
+                    var data = $.grep(productsCollection, function (e) {
+                        return e.ProductId !== id;
+                    });
+
+                    productsCollection = data;
+                    saveToStorage("products", productsCollection);
+
+                    // try to save products to session
+                    saveToSession(productsCollection);
+
                     $(ctl).parents("tr").remove();
                 },
                 error: function (request, message, error) {
@@ -173,45 +209,93 @@
             // store product id in the hidden field
             $("#productid").val(id);
 
-            // call web api to get a single product
-            $.ajax(
-           {
-               url: '/api/Product/' + id,
-               type: 'GET',
-               dataType: 'json',
-               success: function (product) {
-                   console.log(product);
-                   productToFields(product);
+            // only get from webapi if its not in the local
+            // only call product list if the local cache is empty
+            if (productsCollection.length == 0) {
+                console.log("local array is empty");
+            }
 
-                   $("#editPanel").removeClass("hidden");
-                   $("#addButton").addClass("hidden");
+            var storageCollection = getFromSession("products");
 
-                   // change the update button text
-                   $("#updateButton").text("Update");
-               },
-               error: function (request, message, error) {
-                   console.log("Product Id: " + id);
-                   handleException(request, message, error);
-               }
-           });
 
+            if (storageCollection == null) {
+                console.log("localSession Is Empty");
+
+                // call web api to get a single product
+                $.ajax(
+               {
+                   url: '/api/Product/' + id,
+                   type: 'GET',
+                   dataType: 'json',
+                   success: function (product) {
+                       console.log(product);
+
+                       productToFields(product);
+
+                       $("#editPanel").removeClass("hidden");
+                       $("#addButton").addClass("hidden");
+
+                       // change the update button text
+                       $("#updateButton").text("Update");
+                   },
+                   error: function (request, message, error) {
+                       console.log("Product Id: " + id);
+                       handleException(request, message, error);
+                   }
+               });
+            } else {
+                console.log("localSession Has Data");
+                productsCollection = storageCollection;
+
+                // find it
+                var foundProduct = $.grep(productsCollection, function (e) { return e.ProductId === id; });
+                productToFields(foundProduct[0]);
+
+                $("#editPanel").removeClass("hidden");
+                $("#addButton").addClass("hidden");
+
+                // change the update button text
+                $("#updateButton").text("Update");
+
+            }
         }
 
         function productList() {
 
-            // call web api to get list of products
-            $.ajax(
-            {
-                url: '/api/Product/',
-                type: 'GET',
-                dataType: 'json',
-                success: function (products) {
-                    productListSuccess(products);
-                },
-                error: function (request, message, error) {
-                    handleException(request, message, error);
-                }
-            });
+            // only call product list if the local cache is empty
+            if (productsCollection.length == 0) {
+                console.log("local array is empty");
+            }
+
+            var storageCollection = getFromSession("products");
+
+
+            if (storageCollection == null) {
+                console.log("localSession Is Empty");
+
+                // call web api to get list of products
+                $.ajax(
+                {
+                    url: '/api/Product/',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (products) {
+                        productsCollection = products;
+                        saveToSession(productsCollection);
+                        productListSuccess(products);
+                    },
+                    error: function (request, message, error) {
+                        handleException(request, message, error);
+                    }
+                });
+
+            } else {
+                console.log("localSession Has Data");
+                productsCollection = storageCollection;
+                productListSuccess(productsCollection);
+            }
+
+
         }
 
         function productListSuccess(products) {
@@ -258,28 +342,23 @@
             return ret;
         }
 
-
-
         function productToFields(product) {
             $("#productname").val(product.ProductName);
             $("#introdate").val(product.IntroductionDate);
             $("#url").val(product.Url);
         }
 
-
-
         function productAddSuccess(product) {
             productAddRow(product);
+            $("#editPanel").addClass("hidden");
             formClear();
         }
 
         function productUpdateSuccess(product) {
+
             productUpdateInTable(product);
         }
 
-        // find original row,
-        // insert new row after that,
-        // then remove original row.
         function productUpdateInTable(product) {
             // find product in the <table>: look for the associated button and note the first row that is a parent for it.
             var row = $("#productTable button[data-id='" + product.ProductId + "']").parents("tr")[0];
@@ -294,6 +373,8 @@
 
             // change the update button text
             $("#updateButton").text("Add");
+
+            $("#editPanel").addClass("hidden");
         }
 
         function formClear() {
@@ -311,6 +392,52 @@
             }
             console.log(msg);
             alert(msg);
+        }
+
+        function saveToStorage(key, value) {
+            if (typeof (Storage) !== "undefined") {
+                localStorage.setItem(key, JSON.stringify(value));
+                console.log("Saving to local storage [" + key + "] : " + JSON.stringify(value));
+            } else {
+                console.log("local HTML5 storage is not available.");
+            }
+        }
+
+        function getFromStorage(key) {
+            if (typeof (Storage) !== "undefined") {
+                var toReturn = localStorage.getItem(key);
+                console.log("Retrieving from local storage [" + key + "] : " + JSON.stringify(toReturn));
+                return JSON.parse(toReturn);
+            } else {
+                console.log("local HTML5 storage is not available.");
+
+                return productsCollection;
+            }
+        }
+
+        function saveToSession(key, value) {
+
+            sessionStorage.setItem(key, JSON.stringify(value));
+            console.log("Saving to session storage [" + key + "] : " + JSON.stringify(value));
+        }
+
+        function saveToSession(value) {
+            var key = "products";
+            sessionStorage.setItem(key, JSON.stringify(value));
+            console.log("Saving to session storage [" + key + "] : " + JSON.stringify(value));
+        }
+
+        function getFromSession(key) {
+            var fromSession = sessionStorage.getItem(key);
+            console.log("Getting from session storage [" + key + "] : " + JSON.stringify(fromSession));
+            return JSON.parse(fromSession);
+        }
+
+        function getFromSession() {
+            var key = "products";
+            var fromSession = sessionStorage.getItem(key);
+            console.log("Getting from session storage [" + key + "] : " + JSON.stringify(fromSession));
+            return JSON.parse(fromSession);
         }
 
         // call the product list function after the webpage loads
