@@ -71,7 +71,6 @@ namespace webdemo.Controllers
             return ret;
         }
 
-        [Route("/api/Product")]
         [HttpPut]
         public IHttpActionResult Put(int id, Product product)
         {
@@ -87,6 +86,27 @@ namespace webdemo.Controllers
             }
 
             return ret;
+        }
+
+        [HttpDelete]
+        public IHttpActionResult Delete(int id)
+        {
+            IHttpActionResult ret = null;
+            if (DeleteProduct(id))
+            {
+                ret = Ok(true);
+            }
+            else
+            {
+                ret = NotFound();
+            }
+            return ret;
+        }
+
+        // mock method to simulate delete results
+        private bool DeleteProduct(int id)
+        {
+            return true;
         }
 
         // mock method to simulate adding a new product
