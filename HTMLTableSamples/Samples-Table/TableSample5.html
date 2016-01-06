@@ -1,0 +1,309 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>Paul's Training Videos</title>
+  <link href="../Content/bootstrap.css" rel="stylesheet" />
+
+  <script src="../Scripts/jquery-1.11.0.min.js"></script>
+  <script src="../Scripts/bootstrap.min.js"></script>
+</head>
+<body>
+  <input type="hidden" id="productid" value="0" />
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-6">
+        <h2>Delete (DELETE) a Row</h2>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-6">
+        <table id="productTable"
+               class="table table-bordered table-condensed table-striped">
+          <thead>
+            <tr>
+              <th>Edit</th>
+              <th>Product Name</th>
+              <th>Introduction Date</th>
+              <th>URL</th>
+              <th>Delete</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-6">
+        <button type="button" id="addButton"
+                class="btn btn-primary"
+                onclick="addClick();">
+          Add Product
+        </button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-6">
+        <div class="panel panel-primary">
+          <div class="panel-heading">
+            Product Information
+          </div>
+          <div class="panel-body">
+            <div class="form-group">
+              <label for="productname">
+                Product Name
+              </label>
+              <input type="text" id="productname"
+                     class="form-control" />
+            </div>
+            <div class="form-group">
+              <label for="introdate">
+                Introduction Date
+              </label>
+              <input type="date" id="introdate"
+                     class="form-control" />
+            </div>
+            <div class="form-group">
+              <label for="url">URL</label>
+              <input type="url" id="url"
+                     class="form-control" />
+            </div>
+          </div>
+          <div class="panel-footer">
+            <div class="row">
+              <div class="col-xs-12">
+                <button type="button" id="updateButton"
+                        class="btn btn-primary"
+                        onclick="updateClick();">
+                  Add
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(document).ready(function () {
+      productList();
+    });
+
+    var Product = {
+      ProductId: 0,
+      ProductName: "",
+      IntroductionDate: "",
+      Url: ""
+    }
+
+    function updateClick() {
+      // Build product object from inputs
+      Product = new Object();
+      Product.ProductId = $("#productid").val();
+      Product.ProductName = $("#productname").val();
+      Product.IntroductionDate = $("#introdate").val();
+      Product.Url = $("#url").val();
+
+      if ($("#updateButton").text().trim() == "Add") {
+        productAdd(Product);
+      }
+      else {
+        productUpdate(Product);
+      }
+    }
+
+    function addClick() {
+      formClear();
+    }
+
+    function productUpdate(product) {
+      var url = "/api/Product/" + product.ProductId;
+
+      // Call Web API to update product
+      $.ajax({
+        url: url,
+        type: 'PUT',
+        contentType: "application/json;charset=utf-8",
+        data: JSON.stringify(product),
+        success: function (product) {
+          productUpdateSuccess(product);
+        },
+        error: function (request, message, error) {
+          handleException(request, message, error);
+        }
+      });
+    }
+
+    function productUpdateSuccess(product) {
+      productUpdateInTable(product);
+    }
+
+    function productAdd(product) {
+      // Call Web API to add a new product
+      $.ajax({
+        url: "/api/Product",
+        type: 'POST',
+        contentType: "application/json;charset=utf-8",
+        data: JSON.stringify(product),
+        success: function (product) {
+          productAddSuccess(product);
+        },
+        error: function (request, message, error) {
+          handleException(request, message, error);
+        }
+      });
+    }
+
+    function productAddSuccess(product) {
+      productAddRow(product);
+      formClear();
+    }
+
+    // Update product in <table>
+    function productUpdateInTable(product) {
+      // Find Product in <table>
+      var row = $("#productTable button[data-id='" + product.ProductId + "']")
+                .parents("tr")[0];
+      // Add changed product to table
+      $(row).after(productBuildTableRow(product));
+      // Remove original product
+      $(row).remove();
+
+      // Clear form fields
+      formClear();
+
+      // Change Update Button Text
+      $("#updateButton").text("Add");
+    }
+
+    function productGet(ctl) {
+      // Get product id from data- attribute
+      var id = $(ctl).data("id");
+
+      // Store product id in hidden field
+      $("#productid").val(id);
+
+      // Call Web API to get a Product
+      $.ajax({
+        url: "/api/Product/" + id,
+        type: 'GET',
+        dataType: 'json',
+        success: function (product) {
+          productToFields(product);
+
+          // Change Update Button Text
+          $("#updateButton").text("Update");
+        },
+        error: function (request, message, error) {
+          handleException(request, message, error);
+        }
+      });
+    }
+
+    function productToFields(product) {
+      $("#productname").val(product.ProductName);
+      $("#introdate").val(product.IntroductionDate);
+      $("#url").val(product.Url);
+    }
+
+    // Get all Products to display
+    function productList() {
+      // Call Web API to get a list of Products
+      $.ajax({
+        url: '/api/Product/',
+        type: 'GET',
+        dataType: 'json',
+        success: function (products) {
+          productListSuccess(products);
+        },
+        error: function (request, message, error) {
+          handleException(request, message, error);
+        }
+      });
+    }
+
+    // Display all Products returned from Web API call
+    function productListSuccess(products) {
+      // Iterate over the collection of data
+      $.each(products, function (index, product) {
+        // Add a row to the Product table
+        productAddRow(product);
+      });
+    }
+
+    // Add Product row to <table>
+    function productAddRow(product) {
+      // First check if a <tbody> tag exists, add one if not
+      if ($("#productTable tbody").length == 0) {
+        $("#productTable").append("<tbody></tbody>");
+      }
+
+      // Append row to <table>
+      $("#productTable tbody").append(
+        productBuildTableRow(product));
+    }
+
+    // Build a <tr> for a row of table data
+    function productBuildTableRow(product) {
+      var ret = "<tr>" +
+            "<td>" +
+              "<button type='button' " +
+                  "onclick='productGet(this);' " +
+                  "class='btn btn-default' " +
+                  "data-id='" + product.ProductId + "'>" +
+                  "<span class='glyphicon glyphicon-edit' />" +
+              "</button>" +
+            "</td>" +
+            "<td>" + product.ProductName + "</td>" +
+            "<td>" + product.IntroductionDate + "</td>" +
+            "<td>" + product.Url + "</td>" +
+            "<td>" +
+              "<button type='button' " +
+                      "onclick='productDelete(this);' " +
+                      "class='btn btn-default' " +
+                      "data-id='" + product.ProductId + "'>" +
+                      "<span class='glyphicon glyphicon-remove' />" +
+              "</button>" +
+            "</td>" +
+          "</tr>";
+
+      return ret;
+    }
+
+    // Delete product from <table>
+    function productDelete(ctl) {
+      var id = $(ctl).data("id");
+
+      // Call Web API to delete a product
+      $.ajax({
+        url: "/api/Product/" + id,
+        type: 'DELETE',
+        success: function (product) {
+          $(ctl).parents("tr").remove();
+        },
+        error: function (request, message, error) {
+          handleException(request, message, error);
+        }
+      });
+    }
+
+    // Clear form fields
+    function formClear() {
+      $("#productname").val("");
+      $("#introdate").val("");
+      $("#url").val("");
+    }
+
+    // Handle exceptions from AJAX calls
+    function handleException(request, message, error) {
+      var msg = "";
+
+      msg += "Code: " + request.status + "\n";
+      msg += "Text: " + request.statusText + "\n";
+      if (request.responseJSON != null) {
+        msg += "Message" + request.responseJSON.Message + "\n";
+      }
+
+      alert(msg);
+    }
+  </script>
+</body>
+</html>

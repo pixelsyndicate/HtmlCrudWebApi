@@ -1,0 +1,163 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>Paul's Training Videos</title>
+  <link href="../Content/bootstrap.css" rel="stylesheet" />
+
+  <script src="../Scripts/jquery-1.11.0.min.js"></script>
+  <script src="../Scripts/bootstrap.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-6">
+        <h2>Get (GET) All Rows</h2>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-6">
+        <table id="productTable"
+               class="table table-bordered table-condensed table-striped">
+          <thead>
+            <tr>
+              <th>Product Name</th>
+              <th>Introduction Date</th>
+              <th>URL</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-6">
+        <button type="button" id="addButton"
+                class="btn btn-primary"
+                onclick="addClick();">
+          Add Product
+        </button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-6">
+        <div class="panel panel-primary">
+          <div class="panel-heading">
+            Product Information
+          </div>
+          <div class="panel-body">
+            <div class="form-group">
+              <label for="productname">
+                Product Name
+              </label>
+              <input type="text"
+                     class="form-control"
+                     id="productname" />
+            </div>
+            <div class="form-group">
+              <label for="introdate">
+                Introduction Date
+              </label>
+              <input type="date"
+                     class="form-control"
+                     id="introdate" />
+            </div>
+            <div class="form-group">
+              <label for="url">
+                URL
+              </label>
+              <input type="url"
+                     class="form-control"
+                     id="url" />
+            </div>
+          </div>
+          <div class="panel-footer">
+            <div class="row">
+              <div class="col-xs-12">
+                <button type="button" id="updateButton"
+                        class="btn btn-primary"
+                        onclick="updateClick();">
+                  Add
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(document).ready(function () {
+      productList();
+    });
+
+    // Get all Products to display
+    function productList() {
+      // Call Web API to get a list of Products
+      $.ajax({
+        url: '/api/Product/',
+        type: 'GET',
+        dataType: 'json',
+        success: function (products) {
+          productListSuccess(products);
+        },
+        error: function (request, message, error) {
+          handleException(request, message, error);
+        }
+      });
+    }
+
+    // Display all Products returned from Web API call
+    function productListSuccess(products) {
+      // Iterate over the collection of data
+      $.each(products, function (index, product) {
+        // Add a row to the Product table
+        productAddRow(product);
+      });
+    }
+
+    // Add Product row to <table>
+    function productAddRow(product) {
+      // First check if a <tbody> tag exists, add one if not
+      if ($("#productTable tbody").length == 0) {
+        $("#productTable").append("<tbody></tbody>");
+      }
+
+      // Append row to <table>
+      $("#productTable tbody").append(
+        productBuildTableRow(product));
+    }
+
+    // Build a <tr> for a row of table data
+    function productBuildTableRow(product) {
+      var ret = "<tr>" +
+            "<td>" + product.ProductName + "</td>" +
+            "<td>" + product.IntroductionDate + "</td>" +
+            "<td>" + product.Url + "</td>" +
+          "</tr>";
+
+      return ret;
+    }
+
+
+    // Handle click event on Update button
+    function updateClick() {
+    }
+
+    // Handle click event on Add button
+    function addClick() {
+    }
+
+    // Handle exceptions from AJAX calls
+    function handleException(request, message, error) {
+      var msg = "";
+
+      msg += "Code: " + request.status + "\n";
+      msg += "Text: " + request.statusText + "\n";
+      if (request.responseJSON != null) {
+        msg += "Message" + request.responseJSON.Message + "\n";
+      }
+
+      alert(msg);
+    }
+  </script>
+</body>
+</html>
