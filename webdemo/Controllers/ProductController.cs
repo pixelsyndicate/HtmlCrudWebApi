@@ -143,7 +143,8 @@ namespace webdemo.Controllers
                 ProductId = 1,
                 ProductName = "Extending bootstrap with css, javascript and jquery",
                 IntroductionDate = Convert.ToDateTime("06/11/2015"),
-                Url = "http://bit.ly/1I8ZqZg"
+                Url = "http://bit.ly/1I8ZqZg",
+                Price = 25.98
             });
 
             toReturn.Add(new Product
@@ -151,7 +152,8 @@ namespace webdemo.Controllers
                 ProductId = 2,
                 ProductName = "Build your own Bootstrap Business",
                 IntroductionDate = Convert.ToDateTime("01/29/2015"),
-                Url = "http://bit.ly/1SNzC0i"
+                Url = "http://bit.ly/1SNzC0i",
+                Price = 15.49
             });
 
             toReturn.Add(new Product
@@ -159,7 +161,8 @@ namespace webdemo.Controllers
                 ProductId = 3,
                 ProductName = "Building mobile web sites using web forms, bootstrap and html5",
                 IntroductionDate = Convert.ToDateTime("08/28/2015"),
-                Url = "http://bit.ly/1j2dcrj"
+                Url = "http://bit.ly/1j2dcrj",
+                Price = 30.24
             });
 
             return toReturn;

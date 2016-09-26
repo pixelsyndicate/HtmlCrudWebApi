@@ -12,5 +12,7 @@ namespace webdemo.Models
         public string ProductName { get; set; }
         public DateTime IntroductionDate { get; set; }
         public string Url { get; set; }
+
+        public double Price { get; set; }
     }
 }

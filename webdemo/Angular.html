@@ -21,14 +21,21 @@
 
     <!-- ** BEGIN MESSAGE AREA ** -->
     <div ng-show="uiState.isMessageAreaVisible" class="row">
-        <div class="alert alert-danger alert-dismissible" role="alert">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <div class="alert alert-danger" role="alert">
+            <!--<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>-->
             <ul>
                 <li ng-repeat="msg in uiState.messages">
                     {{msg.message}}
                 </li>
             </ul>
             <!--<strong>Warning!</strong> Better check yourself, you're not looking too good.-->
+        </div>
+    </div>
+
+    <!-- ** BEGIN LOADING AREA ** -->
+    <div ng-show="uiState.isLoading" class="row">
+        <div class="alert alert-info" role="alert">
+           <i class="glyphicon glyphicon-cog"></i> LOADING...
         </div>
     </div>
 
@@ -58,10 +65,24 @@
                     <th>Product Name</th>
                     <th>Introduction Date</th>
                     <th>URL</th>
+                    <th>Price</th>
                     <th>Delete</th>
                 </tr>
             </thead>
-
+            <tbody>
+            <tr ng-repeat="product in products">
+                <td class='pdsa-action-button-column'>
+                    <a href='#' class="btn btn-default btn-sm" ng-click="editClick(product.ProductId)"><i class="glyphicon glyphicon-edit"></i></a>
+                </td>
+                <td>{{product.ProductName}}</td>
+                <td>{{product.IntroductionDate}}</td>
+                <td>{{product.Url}}</td>
+                <td>{{product.Price | currency : "$"}}</td>
+                <td class='pdsa-action-button-column'>
+                    <a href='#' class="btn btn-warning btn-sm" ng-click="deleteClick(product.ProductId)"><i class="glyphicon glyphicon-trash"></i></a>
+                </td>
+            </tr>
+            </tbody>
 
 
         </table>
@@ -103,185 +124,25 @@
     <!--Page Selection AREA-->
     <div class="row">
         <div class="col-xs-6 text-center">
-            <a href="Default.html" class="btn btn-sm btn-info">JQuery Version</a>
+            <a href="Default.html" class="btn btn-sm btn-default">JQuery Version</a>
         </div>
         <div class="col-xs-6 text-center">
-            <a href="Angular.html" class="btn btn-sm btn-danger">Angular Version</a>
+            <a href="Angular.html" class="btn btn-sm btn-default">Angular Version</a>
         </div>
     </div>
 </div>
 
     <script type="text/javascript">
 
+  
         // create an angular application scope
         (function () {
-            'use strict';
+           // 'use strict';
 
             angular.module('ptcApp', []).controller('PTCController', PTCController);
-
-            function PTCController($scope) {
-
-                var vm = $scope;
-
-                vm.uiState = {};
-
-                // private vars
-                const pageMode = {
-                    LIST: 'List',
-                    EDIT: 'Edit',
-                    ADD: 'Add',
-                    EXCEPTION: 'Exception',
-                    VALIDATION: 'Validation'
-                };
-
- 
-
-                function setUIState(state) {
-
-                    // store the state 
-                    vm.uiState.mode = state;
-
-                    // do some things based on that state
-                    switch (state) {
-                        case pageMode.LIST:
-                            vm.uiState.isDetailAreaVisible = false;
-                            vm.uiState.isListAreaVisible = true;
-                            vm.uiState.isSearchAreaVisible = true;
-                            vm.uiState.isMessageAreaVisible = false;
-                            break;
-                        case pageMode.ADD:
-                            vm.uiState.isDetailAreaVisible = true;
-                            vm.uiState.isListAreaVisible = false;
-                            vm.uiState.isSearchAreaVisible = false;
-                            vm.uiState.messages = [];
-                            break;
-                        case pageMode.EDIT:
-                            vm.uiState.isDetailAreaVisible = true;
-                            vm.uiState.isListAreaVisible = false;
-                            vm.uiState.isSearchAreaVisible = false;
-                            vm.uiState.messages = [];
-                            break;
-                        case pageMode.EXCEPTION:
-                            vm.uiState.isMessageAreaVisible = true;
-                            break;
-                        case pageMode.VALIDATION:
-                            vm.uiState.isMessageAreaVisible = true;
-                            break;
-                    }
-
-
-                }
-
-                // expose the click evetn functions through the Angular $scope
-                vm.addClick = addClick;
-                vm.cancelClick = cancelClick;
-                vm.editClick = editClick;
-                vm.deleteClick = deleteClick;
-                vm.saveClick = saveClick;
-
-                // CLICK EVENT HANDLERS
-
-               
-
-                function addClick() {
-                    setUIState(pageMode.ADD);
-                }
-
-                function cancelClick() {
-                    setUIState(pageMode.LIST);
-                }
-
-                function editClick() {
-                    // todo: get data here
-                    setUIState(pageMode.EDIT);
-                }
-                function deleteClick(id) {
-                    // todo: delete data here
-                }
-
-                function saveClick() {
-                    saveData();
-                }
-
-                function saveData() {
-
-                    // todo: save data here.
-                    // insert or update the data
-
-                    if (vm.uiState.mode === pageMode.ADD) {
-                        insertData();
-                    }
-                    else if (vm.uiState.mode === pageMode.EDIT) {
-                        updateData();
-                    }
-
-                    if (vm.uiState.mode === pageMode.EXCEPTION || vm.uiState.mode === pageMode.VALIDATION) {
-                        // check for validation message
-                        setUIState(vm.uiState.mode);
-                    } else {
-                        // when go back to page, by default display a list
-                         setUIState(pageMode.LIST);
-                    }
-
-                    
-                }
-
-
-
-                function insertData() {
-                    if (validate()) {
-                        
-                    }
-                }
-
-                function updateData() {
-                    if (validate()) {
-
-                    }
-                }
-
-                function validate() {
-                    // simulate a data validation error
-                    vm.uiState.mode = pageMode.VALIDATION;
-
-                    vm.uiState.messages.push({
-                        property: 'ProductName',
-                        message: 'Product Name must be filled in.'
-                    });
-
-                    vm.uiState.messages.push({
-                        property: 'Url',
-                        message: 'Url must be filled in.'
-                    });
-
-                    return false;
-                }
-                // create a uistate object literal
-                function initUIState() {
-                    return {
-                        mode: pageMode.LIST,
-                        isDetailAreaVisible: false,
-                        isListAreaVisible: false,
-                        isMessageAreaVisible: false,
-                        isSearchAreaVisible: false,
-                        messages: [] // empty collection
-                    };
-                }
-
-                function init() {
-                    vm.uiState = initUIState(); // first full object injection.
-                    setUIState(pageMode.LIST);
-                }
-
-               
-
-                init();
-
-               
-            }
-
-          
         })();
+
+  
 
     </script>
 </body>
