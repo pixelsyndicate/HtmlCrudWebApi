@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http;
 using System.Web.Http.Cors;
+using webdemo.DAL;
 using webdemo.Models;
 
 namespace webdemo.Controllers
@@ -10,6 +11,8 @@ namespace webdemo.Controllers
     //[EnableCors(origins: "http://localhost:62271", headers: "*", methods: "*")]
     public class ProductController : ApiController
     {
+
+        private EfProducts _dbProducts = new EfProducts();
         // GET: api/Product
         [HttpGet]
         public IHttpActionResult Get()
@@ -17,7 +20,42 @@ namespace webdemo.Controllers
             IHttpActionResult toReturn = null;
             List<Product> list = new List<Product>();
 
-            list = CreateMockData();
+            using (var db = new EfProducts())
+            {
+                var currentRecs = from p in db.Products select p;
+                var listOf = currentRecs.ToList().Count;
+
+                if (listOf >= 1)
+                {
+                    db.Products.AddRange(CreateMockData().Select(x => new ProductEntity
+                    {
+                        ProductId = x.ProductId,
+                        IntroductionDate = x.IntroductionDate,
+                        ProductName = x.ProductName,
+                        Price = x.Price,
+                        Url = x.Url
+                    }
+                        ));
+                    db.SaveChanges();
+                }
+            }
+
+            using (_dbProducts = new EfProducts())
+            {
+                list = (from p in _dbProducts.Products
+                        select new Product
+                        {
+                            ProductId = p.ProductId,
+                            IntroductionDate = p.IntroductionDate.Value,
+                            ProductName = p.ProductName,
+                            Price = p.Price.Value,
+                            Url = p.Url
+                        }).ToList();
+            }
+
+
+
+            // list = CreateMockData();
 
             if (list.Count > 0)
             {
