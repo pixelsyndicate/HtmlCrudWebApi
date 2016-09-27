@@ -6,7 +6,12 @@ function PTCController($scope, $http) {
     var dataService = $http;
 
     vm.uiState = {};
+
+    // for all known products
     vm.products = [];
+
+    // for single selected product
+    vm.product = {};
 
     // private vars
     const pageMode = {
@@ -17,17 +22,50 @@ function PTCController($scope, $http) {
         VALIDATION: 'Validation'
     };
 
+
+
+    // expose the click evetn functions through the Angular $scope
+    vm.addClick = addClick;
+    vm.cancelClick = cancelClick;
+    vm.editClick = editClick;
+    vm.deleteClick = deleteClick;
+    vm.saveClick = saveClick;
+
+    init();
+
+
     function getAll() {
 
         vm.uiState.isLoading = true;
 
-        dataService.get("/api/Product").then(
+        dataService.get("/api/Product/").then(
 
             function (response) { // this callback will be called asynchronously when the response is available
                 vm.products = response.data;
             },
             function (response) { // called asynchronously if an error occurs or server returns response with an error status.
                 handleException(response);
+            }).finally(
+            function () {
+                vm.uiState.isLoading = false;
+            });
+    }
+
+    function get(id: number) {
+        vm.uiState.isLoading = true;
+
+        dataService.get("/api/Product/" + id).then(
+
+            function (response) { // this callback will be called asynchronously when the response is available
+                vm.product = response.data;
+                // clean up the date so it matches the browser settings
+
+                // ReSharper disable once TsNotResolved
+                vm.product.IntroductionDate = new Date(vm.product.IntroductionDate).toLocaleDateString();
+                setUIState(pageMode.EDIT);
+            },
+            function (error) { // called asynchronously if an error occurs or server returns response with an error status.
+                handleException(error);
             }).finally(
             function () {
                 vm.uiState.isLoading = false;
@@ -84,20 +122,28 @@ function PTCController($scope, $http) {
         setUIState(pageMode.LIST);
     }
 
-    function editClick() {
-        // todo: get data here
-        setUIState(pageMode.EDIT);
+    function editClick(id: number) {
+        get(id);
     }
+
     function deleteClick(id) {
 
-        // todo: delete data here
-        vm.messages = [];
-        vm.uiState.messages.push({
-            property: 'ProductName',
-            message: "Unable to delete product " + id + ". Not Yet Implimented"
-        });
-        vm.uiState.mode = pageMode.VALIDATION;
-        saveData();
+        deleteData(id);
+    }
+
+    function deleteData(id) {
+        if (confirm("Delete this Product?")) {
+            dataService.delete("/api/Product/" + id)
+                .then(function (result) {
+                    // get index of this
+                    var index = vm.products.map(function (p) { return p.ProductId; }).indexOf(id);
+                    // remove from product array
+                    vm.products.splice(index, 1);
+
+                    setUIState(pageMode.LIST);
+                },
+                function (error) { handleException(error); });
+        }
     }
 
     function saveClick() {
@@ -116,6 +162,7 @@ function PTCController($scope, $http) {
             updateData();
         }
 
+        // after action, see if there was a problem. else set to LIST
         if (vm.uiState.mode === pageMode.EXCEPTION || vm.uiState.mode === pageMode.VALIDATION) {
             // check for validation message
             setUIState(vm.uiState.mode);
@@ -130,32 +177,77 @@ function PTCController($scope, $http) {
 
 
     function insertData() {
-        if (validate()) {
 
+        if (validate()) {
+            dataService.post("/api/Product/", vm.product).then(
+                function (result) {
+                    // update product object
+                    vm.product = result.data;
+
+                    // add product to array
+                    vm.products.push(vm.product);
+
+                    setUIState(pageMode.LIST);
+                }, function (error) {
+                    handleException(error);
+                });
         }
     }
 
     function updateData() {
-        if (validate()) {
 
+        if (validate()) {
+            dataService.put("/api/Product/" + vm.product.ProductId, vm.product)
+                .then(
+                function (result) {
+                    // update the product object in memory
+                    vm.product = result.data;
+
+                    // get the index of this particular object as it sits in the local array
+                    var prodId = vm.product.ProductId;
+                    var index = vm.products.map(function (p) { return p.ProductId; }).indexOf(prodId);
+
+                    // update product in the products array in memory
+                    vm.products[index] = vm.product;
+                    setUIState(pageMode.LIST);
+                },
+                function (error) {
+                    handleException(error);
+                });
         }
     }
 
     function validate() {
+        var ret = true;
+
+        // fix up the date (assume is actually a date) to correct date to UTC (due to JSON formatting)
+        if (vm.product.IntroductionDate != null) {
+            var cleanedDate = vm.product.IntroductionDate.replace(/\u200E/g, "");
+            vm.product.IntroductionDate = new Date(cleanedDate).toISOString();
+
+            if (vm.product.IntroductionDate == null) {
+                vm.uiState.mode = pageMode.VALIDATION;
+                ret = false;
+            }
+
+        }
+
+
+        return ret;
         // simulate a data validation error
-        vm.uiState.mode = pageMode.VALIDATION;
+        //vm.uiState.mode = pageMode.VALIDATION;
 
-        vm.uiState.messages.push({
-            property: 'ProductName',
-            message: 'Product Name must be filled in.'
-        });
+        //vm.uiState.messages.push({
+        //    property: 'ProductName',
+        //    message: 'Product Name must be filled in.'
+        //});
 
-        vm.uiState.messages.push({
-            property: 'Url',
-            message: 'Url must be filled in.'
-        });
+        //vm.uiState.messages.push({
+        //    property: 'Url',
+        //    message: 'Url must be filled in.'
+        //});
 
-        return false;
+        // return false;
     }
 
     // create a uistate object literal
@@ -201,13 +293,6 @@ function PTCController($scope, $http) {
     }
 
 
-    // expose the click evetn functions through the Angular $scope
-    vm.addClick = addClick;
-    vm.cancelClick = cancelClick;
-    vm.editClick = editClick;
-    vm.deleteClick = deleteClick;
-    vm.saveClick = saveClick;
-    init();
 
 
 }

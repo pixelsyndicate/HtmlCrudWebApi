@@ -33,7 +33,7 @@ namespace webdemo.Controllers
 
 
         // GET: api/Product/5
-        [HttpGet]
+        [HttpGet()]
         public IHttpActionResult Get(int id)
         {
             IHttpActionResult toReturn = null;
@@ -67,7 +67,7 @@ namespace webdemo.Controllers
             }
             else
             {
-                ret = NotFound();
+                ret = InternalServerError();
             }
 
             return ret;
@@ -94,21 +94,34 @@ namespace webdemo.Controllers
         public IHttpActionResult Delete(int id)
         {
             IHttpActionResult ret = null;
-            if (DeleteProduct(id))
+            if (Exists(id))
             {
-                ret = Ok(true);
+                if (DeleteProduct(id))
+                {
+                    ret = Ok(true);
+                }
+                else
+                {
+                    ret = InternalServerError();
+                }
             }
-            else
-            {
-                ret = NotFound();
-            }
+            else { ret = NotFound(); }
+
             return ret;
+        }
+
+        private bool Exists(int id)
+        {
+            var currentData = CreateMockData();
+            var currentRec = currentData.Find(x => x.ProductId == id);
+            return currentRec != null;
         }
 
         // mock method to simulate delete results
         private bool DeleteProduct(int id)
         {
-            return true;
+            var currentData = CreateMockData();
+            return currentData.Remove(currentData.Find(x => x.ProductId == id));
         }
 
         // mock method to simulate adding a new product

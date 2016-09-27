@@ -75,7 +75,7 @@
                     <a href='#' class="btn btn-default btn-sm" ng-click="editClick(product.ProductId)"><i class="glyphicon glyphicon-edit"></i></a>
                 </td>
                 <td>{{product.ProductName}}</td>
-                <td>{{product.IntroductionDate}}</td>
+                <td>{{product.IntroductionDate | date}}</td>
                 <td>{{product.Url}}</td>
                 <td>{{product.Price | currency : "$"}}</td>
                 <td class='pdsa-action-button-column'>
@@ -97,22 +97,28 @@
         <div class="panel-body">
             <div class="form-group">
                 <label for="productname">Product Name</label>
-                <input type="text" id="productname" class="form-control"/>
+                <input type="text" id="productname" class="form-control" ng-model="product.ProductName"/>
+
             </div>
             <div class="form-group">
                 <label for="introdate">Introduction Date</label>
-                <input type="date" id="introdate" class="form-control"/>
+                <input type="text" id="introdate" class="form-control" ng-model="product.IntroductionDate"  />
             </div>
             <div class="form-group">
                 <label for="url">URL</label>
-                <input type="url" id="url" class="form-control"/>
+                <input type="text" id="url" class="form-control"  ng-model="product.Url"/>
+            </div>
+            <div class="form-group">
+                <label for="price">Price</label>
+                <input type="text" id="price" class="form-control"  ng-model="product.Price"/>
             </div>
         </div>
-        <input type="hidden" id="productid" value="0"/>
+        <input type="hidden" id="productid" value="{{product.ProductId}}"/>
         <div class="panel-footer">
             <div class="row">
                 <div class="col-xs-12">
-                    <button type="button" id="updateButton" class="btn btn-primary btn-sm" ng-click="saveClick()"><i class="glyphicon glyphicon-floppy-disk"></i>  Add</button>
+                    <button type="button" id="updateButton" class="btn btn-primary btn-sm" ng-click="saveClick()"><i class="glyphicon glyphicon-floppy-disk"></i> Save</button>
+
                     <button type="button" id="cancelButton" class="btn btn-primary btn-sm" ng-click="cancelClick()"><i class="glyphicon glyphicon-remove-circle"></i> Cancel</button>
                 </div>
             </div>
