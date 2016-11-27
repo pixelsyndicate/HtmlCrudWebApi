@@ -11,144 +11,171 @@
     <!--<script src="Scripts/SessionLogic.js"></script>-->
 </head>
 <body ng-controller="PTCController">
-<div class="container">
-    <!-- ** PAGE TITLE AREA ** -->
-    <div class="row">
-        <div class="col-sm-6">
-            <h2>Html WebApi and Angular</h2>
-        </div>
-    </div>
 
-    <!-- ** BEGIN MESSAGE AREA ** -->
-    <div ng-show="uiState.isMessageAreaVisible" class="row">
-        <div class="alert alert-danger" role="alert">
-            <!--<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>-->
-            <ul>
-                <li ng-repeat="msg in uiState.messages">
-                    {{msg.message}}
-                </li>
-            </ul>
-            <!--<strong>Warning!</strong> Better check yourself, you're not looking too good.-->
-        </div>
-    </div>
+    <!-- Angular needs to take over validation, so we add novalidate to the form to keep browsers from doing validation -->
+    <form name="productForm" novalidate>
 
-    <!-- ** BEGIN LOADING AREA ** -->
-    <div ng-show="uiState.isLoading" class="row">
-        <div class="alert alert-info" role="alert">
-           <i class="glyphicon glyphicon-cog"></i> LOADING...
-        </div>
-    </div>
-
-    <!-- ** BEGIN SEARCH AREA ** -->
-    <div ng-show="uiState.isSearchAreaVisible" class="panel panel-primary">
-        <div class="panel-heading"></div>
-        <div class="panel-body">
-            <div class="form-horizontal">
-                <label for="productSearch">Product Search</label>
-                <input class="form-control input-sm" id="productSearch"/>
-            </div>
-
-        </div>
-        <div class="panel-footer">
-            <button type="button" id="searchButton" class="btn btn-sm btn-primary" ng-click="searchClick()"><i class="glyphicon glyphicon-search"></i> Search</button>
-            <button type="button" id="resetButton" class="btn btn-sm btn-primary" ng-click="cancelClick()"><i class="glyphicon glyphicon-refresh"></i> Reset</button>
-            <button type="button" id="addButton" class="btn btn-sm btn-success" ng-click="addClick()"><i class="glyphicon glyphicon-plus"></i> Add</button>
-        </div>
-    </div>
-
-    <!-- ** BEGIN LIST AREA ** -->
-    <div ng-show="uiState.isListAreaVisible" class="table-responsive">
-        <table id="productTable" class="table table-bordered table-condensed table-striped">
-            <thead>
-                <tr>
-                    <th>Edit</th>
-                    <th>Product Name</th>
-                    <th>Introduction Date</th>
-                    <th>URL</th>
-                    <th>Price</th>
-                    <th>Delete</th>
-                </tr>
-            </thead>
-            <tbody>
-            <tr ng-repeat="product in products">
-                <td class='pdsa-action-button-column'>
-                    <a href='#' class="btn btn-default btn-sm" ng-click="editClick(product.ProductId)"><i class="glyphicon glyphicon-edit"></i></a>
-                </td>
-                <td>{{product.ProductName}}</td>
-                <td>{{product.IntroductionDate | date}}</td>
-                <td>{{product.Url}}</td>
-                <td>{{product.Price | currency : "$"}}</td>
-                <td class='pdsa-action-button-column'>
-                    <a href='#' class="btn btn-warning btn-sm" ng-click="deleteClick(product.ProductId)"><i class="glyphicon glyphicon-trash"></i></a>
-                </td>
-            </tr>
-            </tbody>
-
-
-        </table>
-    </div>
-
-    <!-- ** BEGIN DETAIL AREA ** -->
-    <div ng-show="uiState.isDetailAreaVisible" class="panel panel-primary">
-        
-        <div class="panel-heading">
-            Product Information
-        </div>
-        <div class="panel-body">
-            <div class="form-group">
-                <label for="productname">Product Name</label>
-                <input type="text" id="productname" class="form-control" ng-model="product.ProductName"/>
-
-            </div>
-            <div class="form-group">
-                <label for="introdate">Introduction Date</label>
-                <input type="text" id="introdate" class="form-control" ng-model="product.IntroductionDate"  />
-            </div>
-            <div class="form-group">
-                <label for="url">URL</label>
-                <input type="text" id="url" class="form-control"  ng-model="product.Url"/>
-            </div>
-            <div class="form-group">
-                <label for="price">Price</label>
-                <input type="text" id="price" class="form-control"  ng-model="product.Price"/>
-            </div>
-        </div>
-        <input type="hidden" id="productid" value="{{product.ProductId}}"/>
-        <div class="panel-footer">
+        <div class="container">
+            <!-- ** PAGE TITLE AREA ** -->
             <div class="row">
-                <div class="col-xs-12">
-                    <button type="button" id="updateButton" class="btn btn-primary btn-sm" ng-click="saveClick()"><i class="glyphicon glyphicon-floppy-disk"></i> Save</button>
+                <div class="col-sm-6">
+                    <h2>Html WebApi and Angular</h2>
+                </div>
+            </div>
 
-                    <button type="button" id="cancelButton" class="btn btn-primary btn-sm" ng-click="cancelClick()"><i class="glyphicon glyphicon-remove-circle"></i> Cancel</button>
+            <!-- ** BEGIN MESSAGE AREA ** -->
+            <div ng-show="uiState.isMessageAreaVisible" class="row">
+                <div class="alert alert-danger" role="alert">
+                    <!--<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>-->
+                    <ul>
+                        <li ng-repeat="msg in uiState.messages">
+                            {{msg.message}}
+                        </li>
+
+                        <!--show validation error messages-->
+                        <li ng-show="productForm.ProductName.$error.required">Product Name is Required.</li>
+                        <li ng-show="!productForm.ProductName.$valid">Product Name must have more than 4 characters and less than 150.</li>
+
+                        <li ng-show="productForm.IntroductionDate.$error.required">Introduction Date is Required.</li>
+                        <li ng-show="!productForm.IntroductionDate.$valid">Invalid Introduction Date.</li>
+
+                        <li ng-show="productForm.Url.$error.required">Url is Required.</li>
+
+                        <li ng-show="productForm.Price.$error.required">Price is Required.</li>
+                        <li ng-show="!productForm.Price.$valid">Price must be btween $0.01 and $9.999.</li>
+
+                    </ul>
+                    <!--<strong>Warning!</strong> Better check yourself, you're not looking too good.-->
+                </div>
+            </div>
+
+            <!-- ** BEGIN LOADING AREA ** -->
+            <div ng-show="uiState.isLoading" class="row">
+                <div class="alert alert-info" role="alert">
+                    <i class="glyphicon glyphicon-cog"></i> LOADING...
+                </div>
+            </div>
+
+            <!-- ** BEGIN SEARCH AREA ** -->
+            <div ng-show="uiState.isSearchAreaVisible" class="panel panel-primary">
+                <div class="panel-heading"></div>
+                <div class="panel-body">
+                    <div class="form-horizontal">
+                        <label for="productSearch">Product Search</label>
+                        <input class="form-control input-sm" id="productSearch" />
+                    </div>
+
+                </div>
+                <div class="panel-footer">
+                    <button type="button" id="searchButton" class="btn btn-sm btn-primary" ng-click="searchClick()"><i class="glyphicon glyphicon-search"></i> Search</button>
+                    <button type="button" id="resetButton" class="btn btn-sm btn-primary" ng-click="cancelClick()"><i class="glyphicon glyphicon-refresh"></i> Reset</button>
+                    <button type="button" id="addButton" class="btn btn-sm btn-success" ng-click="addClick()"><i class="glyphicon glyphicon-plus"></i> Add</button>
+                </div>
+            </div>
+
+            <!-- ** BEGIN LIST AREA ** -->
+            <div ng-show="uiState.isListAreaVisible" class="table-responsive">
+                <table id="productTable" class="table table-bordered table-condensed table-striped">
+                    <thead>
+                        <tr>
+                            <th>Edit</th>
+                            <th>Product Name</th>
+                            <th>Introduction Date</th>
+                            <th>URL</th>
+                            <th>Price</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="product in products">
+                            <td class='pdsa-action-button-column'>
+                                <a href='#' class="btn btn-default btn-sm" ng-click="editClick(product.ProductId)"><i class="glyphicon glyphicon-edit"></i></a>
+                            </td>
+                            <td>{{product.ProductName}}</td>
+                            <td>{{product.IntroductionDate | date}}</td>
+                            <td>{{product.Url}}</td>
+                            <td>{{product.Price | currency : "$"}}</td>
+                            <td class='pdsa-action-button-column'>
+                                <a href='#' class="btn btn-warning btn-sm" ng-click="deleteClick(product.ProductId)"><i class="glyphicon glyphicon-trash"></i></a>
+                            </td>
+                        </tr>
+                    </tbody>
+
+
+                </table>
+            </div>
+
+            <!-- ** BEGIN DETAIL AREA ** -->
+            <div ng-show="uiState.isDetailAreaVisible" class="panel panel-primary">
+
+                <div class="panel-heading">
+                    Product Information
+                </div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label for="productname">Product Name</label>
+                        <!-- angular validation uses the 'name' and value to determine if is valid. so make id and name the same -->
+                        <input type="text" id="productname" name="productname"
+                               required
+                               ng-minlength="5" 
+                               ng-maxlength="150" class="form-control" ng-model="product.ProductName" />
+
+                    </div>
+                    <div class="form-group">
+                        <label for="introdate">Introduction Date</label>
+                        <input type="text" id="introdate" name="introdate"
+                               required
+                               class="form-control" ng-model="product.IntroductionDate" />
+                    </div>
+                    <div class="form-group">
+                        <label for="url">URL</label>
+                        <input type="text" id="url" name="url"
+                               required
+                               class="form-control" ng-model="product.Url" />
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Price</label>
+                        <input type="text" id="price" name="price"
+                               required
+                               min="0.01" max="9999.99"
+                               class="form-control" ng-model="product.Price" />
+                    </div>
+                </div>
+                <input type="hidden" id="productid" name="productid" value="{{product.ProductId}}" />
+                <div class="panel-footer">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <button type="button" id="updateButton" class="btn btn-primary btn-sm" ng-click="saveClick()"><i class="glyphicon glyphicon-floppy-disk"></i> Save</button>
+
+                            <button type="button" id="cancelButton" class="btn btn-primary btn-sm" ng-click="cancelClick()"><i class="glyphicon glyphicon-remove-circle"></i> Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!--Page Selection AREA-->
+            <div class="row">
+                <div class="col-xs-6 text-center">
+                    <a href="Default.html" class="btn btn-sm btn-default">JQuery Version</a>
+                </div>
+                <div class="col-xs-6 text-center">
+                    <a href="Angular.html" class="btn btn-sm btn-default">Angular Version</a>
                 </div>
             </div>
         </div>
-    </div>
-
-
-
-    <!--Page Selection AREA-->
-    <div class="row">
-        <div class="col-xs-6 text-center">
-            <a href="Default.html" class="btn btn-sm btn-default">JQuery Version</a>
-        </div>
-        <div class="col-xs-6 text-center">
-            <a href="Angular.html" class="btn btn-sm btn-default">Angular Version</a>
-        </div>
-    </div>
-</div>
-
+    </form>
     <script type="text/javascript">
 
-  
-        // create an angular application scope
-        (function () {
-           // 'use strict';
 
-            angular.module('ptcApp', []).controller('PTCController', PTCController);
-        })();
+    // create an angular application scope
+    (function() {
+        // 'use strict';
 
-  
+        angular.module('ptcApp', []).controller('PTCController', PTCController);
+    })();
+
 
     </script>
 </body>

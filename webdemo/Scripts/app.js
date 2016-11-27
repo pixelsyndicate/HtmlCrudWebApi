@@ -79,7 +79,18 @@ function PTCController($scope, $http) {
     }
     // CLICK EVENT HANDLERS
     function addClick() {
+        vm.product = initEntity();
         setUIState(pageMode.ADD);
+    }
+    // help our the add method get good starter data
+    function initEntity() {
+        return {
+            ProductId: 0,
+            ProductName: '',
+            IntroductionDate: new Date().toLocaleDateString(),
+            Url: 'http://www.pdsa.com',
+            Price: 0.00
+        };
     }
     function cancelClick() {
         setUIState(pageMode.LIST);

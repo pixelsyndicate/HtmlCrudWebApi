@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Formatting;
 using System.Web.Http;
 using System.Web.Http.Cors;
+using System.Web.Http.Results;
 using webdemo.DAL;
 using webdemo.Models;
 
@@ -25,21 +27,31 @@ namespace webdemo.Controllers
                 var currentRecs = from p in db.Products select p;
                 var listOf = currentRecs.ToList().Count;
 
-                if (listOf >= 1)
+                if (listOf < 1) // might need to fill in the DB
                 {
-                    db.Products.AddRange(CreateMockData().Select(x => new ProductEntity
+                    var mockData = CreateMockData();
+                    try
                     {
-                        ProductId = x.ProductId,
-                        IntroductionDate = x.IntroductionDate,
-                        ProductName = x.ProductName,
-                        Price = x.Price,
-                        Url = x.Url
+                        db.Products.AddRange(mockData.Select(x => new ProductEntity
+                        {
+                            ProductId = 0, //x.ProductId,
+                            IntroductionDate = x.IntroductionDate,
+                            ProductName = x.ProductName,
+                            Price = x.Price,
+                            Url = x.Url
+                        }
+                            ));
+                        db.SaveChanges();
                     }
-                        ));
-                    db.SaveChanges();
+                    catch (Exception ex)
+                    {
+
+                        toReturn = new ExceptionResult(ex, true, new DefaultContentNegotiator(), Request, new List<MediaTypeFormatter>() );
+                    }
                 }
             }
 
+            // retry
             using (_dbProducts = new EfProducts())
             {
                 list = (from p in _dbProducts.Products
@@ -192,7 +204,7 @@ namespace webdemo.Controllers
             toReturn.Add(new Product
             {
                 ProductId = 1,
-                ProductName = "Extending bootstrap with css, javascript and jquery",
+                ProductName = "Extending bootstrap with css, JS and JQuery",
                 IntroductionDate = Convert.ToDateTime("06/11/2015"),
                 Url = "http://bit.ly/1I8ZqZg",
                 Price = 25.98
@@ -210,7 +222,7 @@ namespace webdemo.Controllers
             toReturn.Add(new Product
             {
                 ProductId = 3,
-                ProductName = "Building mobile web sites using web forms, bootstrap and html5",
+                ProductName = "Building using web forms, bootstrap and html5",
                 IntroductionDate = Convert.ToDateTime("08/28/2015"),
                 Url = "http://bit.ly/1j2dcrj",
                 Price = 30.24
