@@ -22,29 +22,23 @@ function PTCController($scope, $http) {
     vm.deleteClick = deleteClick;
     vm.saveClick = saveClick;
     init();
-    function getAll() {
-        vm.uiState.isLoading = true;
-        dataService.get("/api/Product/").then(function (response) {
-            vm.products = response.data;
-        }, function (response) {
-            handleException(response);
-        }).finally(function () {
-            vm.uiState.isLoading = false;
-        });
+    /* set default UiState, get all products */
+    function init() {
+        vm.uiState = initUIState(); // first full object injection.
+        setUIState(pageMode.LIST);
+        // get all the products
+        getAll();
     }
-    function get(id) {
-        vm.uiState.isLoading = true;
-        dataService.get("/api/Product/" + id).then(function (response) {
-            vm.product = response.data;
-            // clean up the date so it matches the browser settings
-            // ReSharper disable once TsNotResolved
-            vm.product.IntroductionDate = new Date(vm.product.IntroductionDate).toLocaleDateString();
-            setUIState(pageMode.EDIT);
-        }, function (error) {
-            handleException(error);
-        }).finally(function () {
-            vm.uiState.isLoading = false;
-        });
+    // create a uistate object literal
+    function initUIState() {
+        return {
+            mode: pageMode.LIST,
+            isDetailAreaVisible: false,
+            isListAreaVisible: false,
+            isMessageAreaVisible: false,
+            isSearchAreaVisible: false,
+            messages: [] // empty collection
+        };
     }
     function setUIState(state) {
         // store the state 
@@ -77,52 +71,9 @@ function PTCController($scope, $http) {
                 break;
         }
     }
-    // CLICK EVENT HANDLERS
-    function addClick() {
-        vm.product = initEntity();
-        setUIState(pageMode.ADD);
-    }
-    // help our the add method get good starter data
-    function initEntity() {
-        return {
-            ProductId: 0,
-            ProductName: '',
-            IntroductionDate: new Date().toLocaleDateString(),
-            Url: 'http://www.pdsa.com',
-            Price: 0.00
-        };
-    }
-    function cancelClick() {
-        setUIState(pageMode.LIST);
-    }
-    function editClick(id) {
-        get(id);
-    }
-    function deleteClick(id) {
-        deleteData(id);
-    }
-    function deleteData(id) {
-        if (confirm("Delete this Product?")) {
-            dataService.delete("/api/Product/" + id)
-                .then(function (result) {
-                // get index of this
-                var index = vm.products.map(function (p) { return p.ProductId; }).indexOf(id);
-                // remove from product array
-                vm.products.splice(index, 1);
-                setUIState(pageMode.LIST);
-            }, function (error) { handleException(error); });
-        }
-    }
-    function saveClick() {
-        // add validation checks
-        if (vm.productForm.$valid) {
-            vm.productForm.$setPristine(); // reset form internal fields to a valid state
-            saveData();
-        }
-        else {
-            vm.uiState.isMessageAreaVisible = true;
-        }
-    }
+    /*
+        DATASERVICE AREA
+    */
     function saveData() {
         // todo: save data here.
         // insert or update the data
@@ -142,6 +93,30 @@ function PTCController($scope, $http) {
         //    // when go back to page, by default display a list
         //    setUIState(pageMode.LIST);
         //}
+    }
+    function getAll() {
+        vm.uiState.isLoading = true;
+        dataService.get("/api/Product/").then(function (response) {
+            vm.products = response.data;
+        }, function (response) {
+            handleException(response);
+        }).finally(function () {
+            vm.uiState.isLoading = false;
+        });
+    }
+    function get(id) {
+        vm.uiState.isLoading = true;
+        dataService.get("/api/Product/" + id).then(function (response) {
+            vm.product = response.data;
+            // clean up the date so it matches the browser settings
+            // ReSharper disable once TsNotResolved
+            vm.product.IntroductionDate = new Date(vm.product.IntroductionDate).toLocaleDateString();
+            setUIState(pageMode.EDIT);
+        }, function (error) {
+            handleException(error);
+        }).finally(function () {
+            vm.uiState.isLoading = false;
+        });
     }
     function insertData() {
         if (validate()) {
@@ -173,6 +148,54 @@ function PTCController($scope, $http) {
             });
         }
     }
+    function deleteData(id) {
+        if (confirm("Delete this Product?")) {
+            dataService.delete("/api/Product/" + id)
+                .then(function (result) {
+                // get index of this
+                var index = vm.products.map(function (p) { return p.ProductId; }).indexOf(id);
+                // remove from product array
+                vm.products.splice(index, 1);
+                setUIState(pageMode.LIST);
+            }, function (error) { handleException(error); });
+        }
+    }
+    /*
+    CLICK EVENT HANDLERS
+    */
+    function addClick() {
+        vm.product = initEntity();
+        setUIState(pageMode.ADD);
+    }
+    function cancelClick() {
+        setUIState(pageMode.LIST);
+    }
+    function editClick(id) {
+        get(id);
+    }
+    function deleteClick(id) {
+        deleteData(id);
+    }
+    function saveClick() {
+        // add validation checks
+        if (vm.productForm.$valid) {
+            vm.productForm.$setPristine(); // reset form internal fields to a valid state
+            saveData();
+        }
+        else {
+            vm.uiState.isMessageAreaVisible = true;
+        }
+    }
+    // help our the add method get good starter data
+    function initEntity() {
+        return {
+            ProductId: 0,
+            ProductName: '',
+            IntroductionDate: new Date().toLocaleDateString(),
+            Url: 'http://www.pdsa.com',
+            Price: 0.00
+        };
+    }
     function validate() {
         var ret = true;
         // fix up the date (assume is actually a date) to correct date to UTC (due to JSON formatting)
@@ -196,23 +219,6 @@ function PTCController($scope, $http) {
         //    message: 'Url must be filled in.'
         //});
         // return false;
-    }
-    // create a uistate object literal
-    function initUIState() {
-        return {
-            mode: pageMode.LIST,
-            isDetailAreaVisible: false,
-            isListAreaVisible: false,
-            isMessageAreaVisible: false,
-            isSearchAreaVisible: false,
-            messages: [] // empty collection
-        };
-    }
-    function init() {
-        vm.uiState = initUIState(); // first full object injection.
-        setUIState(pageMode.LIST);
-        // get all the products
-        getAll();
     }
     // need handler for exceptions 
     // if http status code doesn't lie betwwn 200 and 299, this will run.

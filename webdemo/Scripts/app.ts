@@ -22,8 +22,6 @@ function PTCController($scope, $http) {
         VALIDATION: 'Validation'
     };
 
-
-
     // expose the click evetn functions through the Angular $scope
     vm.addClick = addClick;
     vm.cancelClick = cancelClick;
@@ -33,45 +31,27 @@ function PTCController($scope, $http) {
 
     init();
 
+    /* set default UiState, get all products */
+    function init() {
+        vm.uiState = initUIState(); // first full object injection.
+        setUIState(pageMode.LIST);
 
-    function getAll() {
-
-        vm.uiState.isLoading = true;
-
-        dataService.get("/api/Product/").then(
-
-            function (response) { // this callback will be called asynchronously when the response is available
-                vm.products = response.data;
-            },
-            function (response) { // called asynchronously if an error occurs or server returns response with an error status.
-                handleException(response);
-            }).finally(
-            function () {
-                vm.uiState.isLoading = false;
-            });
+        // get all the products
+        getAll();
     }
 
-    function get(id: number) {
-        vm.uiState.isLoading = true;
 
-        dataService.get("/api/Product/" + id).then(
-
-            function (response) { // this callback will be called asynchronously when the response is available
-                vm.product = response.data;
-                // clean up the date so it matches the browser settings
-
-                // ReSharper disable once TsNotResolved
-                vm.product.IntroductionDate = new Date(vm.product.IntroductionDate).toLocaleDateString();
-                setUIState(pageMode.EDIT);
-            },
-            function (error) { // called asynchronously if an error occurs or server returns response with an error status.
-                handleException(error);
-            }).finally(
-            function () {
-                vm.uiState.isLoading = false;
-            });
+    // create a uistate object literal
+    function initUIState() {
+        return {
+            mode: pageMode.LIST,
+            isDetailAreaVisible: false,
+            isListAreaVisible: false,
+            isMessageAreaVisible: false,
+            isSearchAreaVisible: false,
+            messages: [] // empty collection
+        };
     }
-
     function setUIState(state) {
 
         // store the state 
@@ -108,68 +88,9 @@ function PTCController($scope, $http) {
 
     }
 
-
-
-    // CLICK EVENT HANDLERS
-
-
-
-    function addClick() {
-
-        vm.product = initEntity();
-        setUIState(pageMode.ADD);
-
-    }
-
-    // help our the add method get good starter data
-    function initEntity() {
-        return {
-            ProductId: 0,
-            ProductName: '',
-            IntroductionDate: new Date().toLocaleDateString(),
-            Url: 'http://www.pdsa.com',
-            Price: 0.00
-        };
-    }
-
-    function cancelClick() {
-        setUIState(pageMode.LIST);
-    }
-
-    function editClick(id: number) {
-        get(id);
-    }
-
-    function deleteClick(id) {
-
-        deleteData(id);
-    }
-
-    function deleteData(id) {
-        if (confirm("Delete this Product?")) {
-            dataService.delete("/api/Product/" + id)
-                .then(function (result) {
-                    // get index of this
-                    var index = vm.products.map(function (p) { return p.ProductId; }).indexOf(id);
-                    // remove from product array
-                    vm.products.splice(index, 1);
-
-                    setUIState(pageMode.LIST);
-                },
-                function (error) { handleException(error); });
-        }
-    }
-
-    function saveClick() {
-        // add validation checks
-        if (vm.productForm.$valid) {
-            vm.productForm.$setPristine(); // reset form internal fields to a valid state
-            saveData();
-        } else {
-            vm.uiState.isMessageAreaVisible = true;
-        }
-    }
-
+    /*
+        DATASERVICE AREA
+    */
     function saveData() {
 
         // todo: save data here.
@@ -195,11 +116,43 @@ function PTCController($scope, $http) {
 
 
     }
+    function getAll() {
 
+        vm.uiState.isLoading = true;
 
+        dataService.get("/api/Product/").then(
 
+            function (response) { // this callback will be called asynchronously when the response is available
+                vm.products = response.data;
+            },
+            function (response) { // called asynchronously if an error occurs or server returns response with an error status.
+                handleException(response);
+            }).finally(
+            function () {
+                vm.uiState.isLoading = false;
+            });
+    }
+    function get(id: number) {
+        vm.uiState.isLoading = true;
+
+        dataService.get("/api/Product/" + id).then(
+
+            function (response) { // this callback will be called asynchronously when the response is available
+                vm.product = response.data;
+                // clean up the date so it matches the browser settings
+
+                // ReSharper disable once TsNotResolved
+                vm.product.IntroductionDate = new Date(vm.product.IntroductionDate).toLocaleDateString();
+                setUIState(pageMode.EDIT);
+            },
+            function (error) { // called asynchronously if an error occurs or server returns response with an error status.
+                handleException(error);
+            }).finally(
+            function () {
+                vm.uiState.isLoading = false;
+            });
+    }
     function insertData() {
-
         if (validate()) {
             dataService.post("/api/Product/", vm.product).then(
                 function (result) {
@@ -215,7 +168,6 @@ function PTCController($scope, $http) {
                 });
         }
     }
-
     function updateData() {
 
         if (validate()) {
@@ -238,7 +190,64 @@ function PTCController($scope, $http) {
                 });
         }
     }
+    function deleteData(id) {
+        if (confirm("Delete this Product?")) {
+            dataService.delete("/api/Product/" + id)
+                .then(function (result) {
+                    // get index of this
+                    var index = vm.products.map(function (p) { return p.ProductId; }).indexOf(id);
+                    // remove from product array
+                    vm.products.splice(index, 1);
 
+                    setUIState(pageMode.LIST);
+                },
+                function (error) { handleException(error); });
+        }
+    }
+
+
+    /* 
+    CLICK EVENT HANDLERS
+    */
+    function addClick() {
+
+        vm.product = initEntity();
+        setUIState(pageMode.ADD);
+
+    }
+    function cancelClick() {
+        setUIState(pageMode.LIST);
+    }
+    function editClick(id: number) {
+        get(id);
+    }
+    function deleteClick(id) {
+
+        deleteData(id);
+    }
+    function saveClick() {
+        // add validation checks
+        if (vm.productForm.$valid) {
+            vm.productForm.$setPristine(); // reset form internal fields to a valid state
+            saveData();
+        } else {
+            vm.uiState.isMessageAreaVisible = true;
+        }
+    }
+
+
+    // help our the add method get good starter data
+    function initEntity() {
+        return {
+            ProductId: 0,
+            ProductName: '',
+            IntroductionDate: new Date().toLocaleDateString(),
+            Url: 'http://www.pdsa.com',
+            Price: 0.00
+        };
+    }
+
+    
     function validate() {
         var ret = true;
 
@@ -271,26 +280,8 @@ function PTCController($scope, $http) {
 
         // return false;
     }
+    
 
-    // create a uistate object literal
-    function initUIState() {
-        return {
-            mode: pageMode.LIST,
-            isDetailAreaVisible: false,
-            isListAreaVisible: false,
-            isMessageAreaVisible: false,
-            isSearchAreaVisible: false,
-            messages: [] // empty collection
-        };
-    }
-
-    function init() {
-        vm.uiState = initUIState(); // first full object injection.
-        setUIState(pageMode.LIST);
-
-        // get all the products
-        getAll();
-    }
 
     // need handler for exceptions 
     // if http status code doesn't lie betwwn 200 and 299, this will run.
@@ -313,9 +304,6 @@ function PTCController($scope, $http) {
         // set the UI state to Exception for Validation so we can affect the layout
         setUIState(pageMode.EXCEPTION);
     }
-
-
-
-
+    
 }
 

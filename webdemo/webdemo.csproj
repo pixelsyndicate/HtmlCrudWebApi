@@ -161,6 +161,15 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201611281408356_InitialCreate.cs" />
+    <Compile Include="Migrations\201611281408356_InitialCreate.Designer.cs">
+      <DependentUpon>201611281408356_InitialCreate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201611281442574_RemoveNullables.cs" />
+    <Compile Include="Migrations\201611281442574_RemoveNullables.Designer.cs">
+      <DependentUpon>201611281442574_RemoveNullables.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Product.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -169,7 +178,14 @@
     <TypeScriptCompile Include="Scripts\SessionLogic.ts" />
     <TypeScriptCompile Include="Scripts\typings\jquery\jquery.d.ts" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\201611281408356_InitialCreate.resx">
+      <DependentUpon>201611281408356_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201611281442574_RemoveNullables.resx">
+      <DependentUpon>201611281442574_RemoveNullables.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

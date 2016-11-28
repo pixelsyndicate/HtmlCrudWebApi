@@ -32,7 +32,7 @@ namespace webdemo.DAL
     {
         [Key]
         public int ProductId { get; set; }
-        [MaxLength(50)]
+        [MaxLength(150)]
         public string ProductName { get; set; }
         public DateTime? IntroductionDate { get; set; }
         public string Url { get; set; }
