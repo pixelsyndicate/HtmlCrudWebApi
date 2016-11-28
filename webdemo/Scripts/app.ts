@@ -22,12 +22,28 @@ function PTCController($scope, $http) {
         VALIDATION: 'Validation'
     };
 
-    // expose the click evetn functions through the Angular $scope
-    vm.addClick = addClick;
-    vm.cancelClick = cancelClick;
-    vm.editClick = editClick;
-    vm.deleteClick = deleteClick;
-    vm.saveClick = saveClick;
+    /* 
+    CLICK EVENT HANDLERS
+    */
+    // expose the click event functions through the Angular $scope
+
+    vm.addClick = () => {
+        vm.product = initEntity();
+        setUIState(pageMode.ADD);
+    };
+    vm.cancelClick = () => { setUIState(pageMode.LIST); };
+    vm.editClick = (id: number) => { get(id); };
+    vm.deleteClick = (id: number) => { deleteData(id); };
+
+    // add validation check on form before saveData()
+    vm.saveClick = () => {
+        if (!vm.productForm.$valid) {
+            vm.uiState.isMessageAreaVisible = true;
+        } else {
+            vm.productForm.$setPristine();    // reset form internal fields to a valid state
+            saveData();
+        }
+    };
 
     init();
 
@@ -52,6 +68,7 @@ function PTCController($scope, $http) {
             messages: [] // empty collection
         };
     }
+
     function setUIState(state) {
 
         // store the state 
@@ -85,94 +102,78 @@ function PTCController($scope, $http) {
                 break;
         }
 
-
     }
 
     /*
         DATASERVICE AREA
     */
+
+    // this inserts or updated based on current $scope.uiState.Mode
     function saveData() {
 
-        // insert or update the data
+        switch (vm.uiState.mode) {
 
-        if (vm.uiState.mode === pageMode.ADD) {
-            insertData();
-        }
-        else if (vm.uiState.mode === pageMode.EDIT) {
-            updateData();
+            case pageMode.ADD:
+                insertData();
+                break;
+
+            case pageMode.EDIT:
+                updateData();
+                break;
+
         }
 
-        // dont need this now. have client side validation
-        // AFTER ACTION VALIDATION - only use to react to serverside validation.
-        // after action, see if there was a problem. else set to LIST
-        //if (vm.uiState.mode === pageMode.EXCEPTION || vm.uiState.mode === pageMode.VALIDATION) {
-        //    // check for validation message
-        //    setUIState(vm.uiState.mode);
-        //} else {
-        //    // when go back to page, by default display a list
-        //    setUIState(pageMode.LIST);
+        //if (vm.uiState.mode === pageMode.ADD) {
+        //    insertData();
+        //} else if (vm.uiState.mode === pageMode.EDIT) {
+        //    updateData();
         //}
-
-
     }
+
     function getAll() {
 
         vm.uiState.isLoading = true;
-
-        dataService.get("/api/Product/").then(
-
-            function (response) { // this callback will be called asynchronously when the response is available
-                vm.products = response.data;
-            },
-            function (response) { // called asynchronously if an error occurs or server returns response with an error status.
-                handleException(response);
-            }).finally(
-            function () {
-                vm.uiState.isLoading = false;
-            });
+        // .then(validResponseCallback, errorResponseCallback) is async
+        dataService.get("/api/Product/")
+            .then(result => {
+                vm.products = result.data;
+            }, error => { handleException(error); })
+            .finally(() => { vm.uiState.isLoading = false; });
     }
+
     function get(id: number) {
         vm.uiState.isLoading = true;
 
-        dataService.get("/api/Product/" + id).then(
-
-            function (response) { // this callback will be called asynchronously when the response is available
+        dataService.get("/api/Product/" + id)
+            .then(response => {
                 vm.product = response.data;
-                // clean up the date so it matches the browser settings
-
-                // ReSharper disable once TsNotResolved
                 vm.product.IntroductionDate = new Date(vm.product.IntroductionDate).toLocaleDateString();
                 setUIState(pageMode.EDIT);
             },
-            function (error) { // called asynchronously if an error occurs or server returns response with an error status.
-                handleException(error);
-            }).finally(
-            function () {
-                vm.uiState.isLoading = false;
-            });
+            // called asynchronously if an error occurs or server returns response with an error status.
+            error => { handleException(error); })
+            .finally(() => { vm.uiState.isLoading = false; });
     }
+
     function insertData() {
-        if (validate()) {
-            dataService.post("/api/Product/", vm.product).then(
-                function (result) {
-                    // update product object
-                    vm.product = result.data;
-
-                    // add product to array
-                    vm.products.push(vm.product);
-
-                    setUIState(pageMode.LIST);
-                }, function (error) {
-                    handleException(error);
-                });
-        }
-    }
-    function updateData() {
-
-        if (validate()) {
-            dataService.put("/api/Product/" + vm.product.ProductId, vm.product)
+        if (validateDate()) {
+            dataService.post("/api/Product/", vm.product)
                 .then(
                 function (result) {
+                    vm.product = result.data;
+                    vm.products.push(vm.product);
+                    setUIState(pageMode.LIST);
+                },
+                error => { handleException(error); });
+        }
+    }
+
+    function updateData() {
+
+        if (validateDate()) {
+            dataService.put("/api/Product/" + vm.product.ProductId, vm.product)
+                .then(
+                result => {
                     // update the product object in memory
                     vm.product = result.data;
 
@@ -183,54 +184,30 @@ function PTCController($scope, $http) {
                     // update product in the products array in memory
                     vm.products[index] = vm.product;
                     setUIState(pageMode.LIST);
-                },
-                function (error) {
+                },// if http status code doesn't lie betwwn 200 and 299, this will run.
+                error => {
+                    // if http status code doesn't lie betwwn 200 and 299, this will run.
                     handleException(error);
                 });
         }
     }
-    function deleteData(id) {
+
+    function deleteData(id: number) {
         if (confirm("Delete this Product?")) {
             dataService.delete("/api/Product/" + id)
                 .then(function (result) {
+
                     // get index of this
-                    var index = vm.products.map(function (p) { return p.ProductId; }).indexOf(id);
+                    var index = vm.products.map(function (p) {
+                        return p.ProductId;
+                    })
+                        .indexOf(id);
                     // remove from product array
                     vm.products.splice(index, 1);
 
                     setUIState(pageMode.LIST);
                 },
-                function (error) { handleException(error); });
-        }
-    }
-
-
-    /* 
-    CLICK EVENT HANDLERS
-    */
-    function addClick() {
-
-        vm.product = initEntity();
-        setUIState(pageMode.ADD);
-
-    }
-    function cancelClick() {
-        setUIState(pageMode.LIST);
-    }
-    function editClick(id: number) {
-        get(id);
-    }
-    function deleteClick(id) {
-
-        deleteData(id);
-    }
-    function saveClick() {
-        // add validation checks
-        if (vm.productForm.$valid) {
-            vm.productForm.$setPristine(); // reset form internal fields to a valid state
-            saveData();
-        } else {
-            vm.uiState.isMessageAreaVisible = true;
+                error => { handleException(error); });
         }
     }
 
@@ -239,15 +216,15 @@ function PTCController($scope, $http) {
     function initEntity() {
         return {
             ProductId: 0,
-            ProductName: '',
+            ProductName: 'fail',
             IntroductionDate: new Date().toLocaleDateString(),
-            Url: 'http://www.pdsa.com',
+            Url: 'http://www.microsoft.com',
             Price: 0.00
         };
     }
 
 
-    function validate() {
+    function validateDate() {
         var ret = true;
 
         // fix up the date (assume is actually a date) to correct date to UTC (due to JSON formatting)
@@ -259,10 +236,7 @@ function PTCController($scope, $http) {
                 vm.uiState.mode = pageMode.VALIDATION;
                 ret = false;
             }
-
         }
-
-
         return ret;
         // simulate a data validation error
         //vm.uiState.mode = pageMode.VALIDATION;
@@ -282,7 +256,6 @@ function PTCController($scope, $http) {
 
 
 
-    // need handler for exceptions 
     // if http status code doesn't lie betwwn 200 and 299, this will run.
     function handleException(error) {
         // get error information
@@ -305,4 +278,3 @@ function PTCController($scope, $http) {
     }
 
 }
-

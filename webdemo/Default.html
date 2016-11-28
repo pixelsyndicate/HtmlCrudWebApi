@@ -70,17 +70,21 @@
         </div>
 
         <div class="row">
-            <div class="col-xs-6 text-center">
-                <a href="Default.html" class="btn btn-sm btn-info">JQuery Version</a>
+            <div class="col-sm-6 text-center">
+                <a href="Default.html" class="btn btn-sm btn-primary"
+                   data-toggle="tooltip" data-placement="right" title="Do-It with JQuery">JQuery Version</a>
             </div>
-            <div class="col-xs-6 text-center">
-                <a href="Angular.html" class="btn btn-sm btn-danger">Angular Version</a>
+            <div class="col-sm-6 text-center">
+                <a href="Angular.html" class="btn btn-sm btn-default"
+                   data-toggle="tooltip" data-placement="left" title="We Are Doing-It with Angular">Angular Version</a>
             </div>
         </div>
     </div>
 
 <script>
-
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
 
     
 </script>

@@ -8,7 +8,7 @@ namespace webdemo.DAL
 {
     public class ProductRepository
     {
-        private EfProducts _dbProducts;
+        private readonly EfProducts _dbProducts;
 
         public ProductRepository(EfProducts dbProducts)
         {
@@ -21,8 +21,7 @@ namespace webdemo.DAL
             var foundRec = _dbProducts.Products.Find(id);
             return foundRec != null;
         }
-
-        // mock method to simulate delete results
+        
         public bool DeleteProduct(int id)
         {
             using (var db = new EfProducts())
@@ -31,8 +30,7 @@ namespace webdemo.DAL
                 return db.SaveChanges() >= 1;
             }
         }
-
-        // mock method to simulate adding a new product
+        
         public bool Add(Product product)
         {
             var toInsert = new ProductEntity()
@@ -48,8 +46,7 @@ namespace webdemo.DAL
             var changesMade = _dbProducts.SaveChanges();
             return (changesMade >= 1);
         }
-
-        // mock method to simulate an update to a record
+        
         public bool Update(Product product)
         {
             var id = product.ProductId;
