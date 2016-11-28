@@ -158,6 +158,8 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\ProductController.cs" />
     <Compile Include="DAL\EfProducts.cs" />
+    <Compile Include="DAL\ProductEntity.cs" />
+    <Compile Include="DAL\ProductRepository.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

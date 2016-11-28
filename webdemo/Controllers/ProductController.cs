@@ -13,48 +13,18 @@ namespace webdemo.Controllers
     //[EnableCors(origins: "http://localhost:62271", headers: "*", methods: "*")]
     public class ProductController : ApiController
     {
+        private ProductRepository _repo = new ProductRepository(new EfProducts());
 
-        private EfProducts _dbProducts = new EfProducts();
+
         // GET: api/Product
         [HttpGet]
         public IHttpActionResult Get()
         {
             IHttpActionResult toReturn = null;
-            List<Product> list = new List<Product>();
 
-            using (var db = new EfProducts())
-            {
-                var currentRecs = from p in db.Products select p;
-                var listOf = currentRecs.ToList().Count;
-
-                if (listOf < 1) // might need to fill in the DB
-                {
-                    var mockData = CreateMockData();
-                    try
-                    {
-                        db.Products.AddRange(mockData.Select(x => new ProductEntity
-                        {
-                            ProductId = 0, //x.ProductId,
-                            IntroductionDate = x.IntroductionDate,
-                            ProductName = x.ProductName,
-                            Price = x.Price,
-                            Url = x.Url
-                        }
-                            ));
-                        db.SaveChanges();
-                    }
-                    catch (Exception ex)
-                    {
-
-                        toReturn = new ExceptionResult(ex, true, new DefaultContentNegotiator(), Request, new List<MediaTypeFormatter>() );
-                    }
-                }
-            }
 
             // retry
-            using (_dbProducts = new EfProducts())
-            {
-                list = (from p in _dbProducts.Products
+            var list = (from p in _repo.GetAll()
                         select new Product
                         {
                             ProductId = p.ProductId,
@@ -63,11 +33,6 @@ namespace webdemo.Controllers
                             Price = p.Price.Value,
                             Url = p.Url
                         }).ToList();
-            }
-
-
-
-            // list = CreateMockData();
 
             if (list.Count > 0)
             {
@@ -81,26 +46,28 @@ namespace webdemo.Controllers
             return toReturn;
         }
 
-
         // GET: api/Product/5
         [HttpGet()]
         public IHttpActionResult Get(int id)
         {
             IHttpActionResult toReturn = null;
-            List<Product> list = new List<Product>();
 
             Product prod = new Product();
 
-            list = CreateMockData();
-            prod = list.Find(p => p.ProductId == id);
+            var ent = _repo.GetAll().FirstOrDefault(x => x.ProductId == id);
 
-            if (prod == null)
+            if (ent != null)
             {
-                toReturn = NotFound();
+                prod.Price = ent.Price.Value;
+                prod.IntroductionDate = ent.IntroductionDate.Value;
+                prod.Url = ent.Url;
+                prod.ProductName = ent.ProductName;
+                prod.ProductId = ent.ProductId;
+                toReturn = Ok(prod);
             }
             else
             {
-                toReturn = Ok(prod);
+                toReturn = NotFound();
             }
 
             return toReturn;
@@ -111,8 +78,17 @@ namespace webdemo.Controllers
         {
             IHttpActionResult ret = null;
 
-            if (Add(product))
+            if (_repo.Add(product))
             {
+                var newRecId =
+                    _repo.GetAll()
+                        .First(x =>
+                        x.ProductName == product.ProductName
+                        && x.Price == product.Price &&
+                        x.IntroductionDate == product.IntroductionDate
+                        && x.Url == product.Url).ProductId;
+
+                product.ProductId = newRecId;
                 ret = Created<Product>(Request.RequestUri + product.ProductId.ToString(), product);
             }
             else
@@ -127,15 +103,18 @@ namespace webdemo.Controllers
         public IHttpActionResult Put(int id, Product product)
         {
             IHttpActionResult ret = null;
-
-            if (Update(product))
+            if (_repo.Exists(id))
             {
-                ret = Ok(product);
+                if (_repo.Update(product))
+                {
+                    ret = Ok(product);
+                }
+                else
+                {
+                    ret = NotFound();
+                }
             }
-            else
-            {
-                ret = NotFound();
-            }
+            else { ret = NotFound(); }
 
             return ret;
         }
@@ -144,9 +123,9 @@ namespace webdemo.Controllers
         public IHttpActionResult Delete(int id)
         {
             IHttpActionResult ret = null;
-            if (Exists(id))
+            if (_repo.Exists(id))
             {
-                if (DeleteProduct(id))
+                if (_repo.DeleteProduct(id))
                 {
                     ret = Ok(true);
                 }
@@ -160,76 +139,6 @@ namespace webdemo.Controllers
             return ret;
         }
 
-        private bool Exists(int id)
-        {
-            var currentData = CreateMockData();
-            var currentRec = currentData.Find(x => x.ProductId == id);
-            return currentRec != null;
-        }
-
-        // mock method to simulate delete results
-        private bool DeleteProduct(int id)
-        {
-            var currentData = CreateMockData();
-            return currentData.Remove(currentData.Find(x => x.ProductId == id));
-        }
-
-        // mock method to simulate adding a new product
-        private bool Add(Product product)
-        {
-            int newId = 0;
-            List<Product> list = new List<Product>();
-
-            list = CreateMockData();
-
-            newId = list.Max(p => p.ProductId);
-            newId++;
-            product.ProductId = newId;
-            list.Add(product);
-
-            // todo: change to 'false' to test NotFound()
-            return true;
-        }
-
-        // mock method to simulate an update to a record
-        private bool Update(Product product)
-        {
-            return true;
-        }
-
-        private List<Product> CreateMockData()
-        {
-            List<Product> toReturn = new List<Product>();
-
-            toReturn.Add(new Product
-            {
-                ProductId = 1,
-                ProductName = "Extending bootstrap with css, JS and JQuery",
-                IntroductionDate = Convert.ToDateTime("06/11/2015"),
-                Url = "http://bit.ly/1I8ZqZg",
-                Price = 25.98
-            });
-
-            toReturn.Add(new Product
-            {
-                ProductId = 2,
-                ProductName = "Build your own Bootstrap Business",
-                IntroductionDate = Convert.ToDateTime("01/29/2015"),
-                Url = "http://bit.ly/1SNzC0i",
-                Price = 15.49
-            });
-
-            toReturn.Add(new Product
-            {
-                ProductId = 3,
-                ProductName = "Building using web forms, bootstrap and html5",
-                IntroductionDate = Convert.ToDateTime("08/28/2015"),
-                Url = "http://bit.ly/1j2dcrj",
-                Price = 30.24
-            });
-
-            return toReturn;
-        }
     }
 }
 

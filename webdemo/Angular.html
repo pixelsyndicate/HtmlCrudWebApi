@@ -89,14 +89,14 @@
                     <tbody>
                         <tr ng-repeat="product in products">
                             <td class='pdsa-action-button-column'>
-                                <a href='#' class="btn btn-default btn-sm" ng-click="editClick(product.ProductId)"><i class="glyphicon glyphicon-edit"></i></a>
+                                <a href='#' class="btn btn-default btn-sm"  title="Edit ID:{{product.ProductId}}" ng-click="editClick(product.ProductId)"><i class="glyphicon glyphicon-edit"></i></a>
                             </td>
                             <td>{{product.ProductName}}</td>
                             <td>{{product.IntroductionDate | date}}</td>
                             <td>{{product.Url}}</td>
                             <td>{{product.Price | currency : "$"}}</td>
                             <td class='pdsa-action-button-column'>
-                                <a href='#' class="btn btn-warning btn-sm" ng-click="deleteClick(product.ProductId)"><i class="glyphicon glyphicon-trash"></i></a>
+                                <a href='#' class="btn btn-warning btn-sm"  title="Delete ID:{{product.ProductId}}" ng-click="deleteClick(product.ProductId)"><i class="glyphicon glyphicon-trash"></i></a>
                             </td>
                         </tr>
                     </tbody>
@@ -181,7 +181,7 @@
                     link: function (scope, element, attributes, ngModel) {
                         ngModel.$validators.microsoft = function (value) {
                             if (value) {
-                                return value.indexOf("microsoft") == -1;
+                                return value.indexOf("microsoft") === -1;
                             }
                         }
                     }

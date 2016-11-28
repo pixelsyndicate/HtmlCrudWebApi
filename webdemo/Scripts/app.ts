@@ -93,7 +93,6 @@ function PTCController($scope, $http) {
     */
     function saveData() {
 
-        // todo: save data here.
         // insert or update the data
 
         if (vm.uiState.mode === pageMode.ADD) {
@@ -247,7 +246,7 @@ function PTCController($scope, $http) {
         };
     }
 
-    
+
     function validate() {
         var ret = true;
 
@@ -280,7 +279,7 @@ function PTCController($scope, $http) {
 
         // return false;
     }
-    
+
 
 
     // need handler for exceptions 
@@ -304,6 +303,6 @@ function PTCController($scope, $http) {
         // set the UI state to Exception for Validation so we can affect the layout
         setUIState(pageMode.EXCEPTION);
     }
-    
+
 }
 

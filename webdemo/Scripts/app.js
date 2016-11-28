@@ -75,7 +75,6 @@ function PTCController($scope, $http) {
         DATASERVICE AREA
     */
     function saveData() {
-        // todo: save data here.
         // insert or update the data
         if (vm.uiState.mode === pageMode.ADD) {
             insertData();

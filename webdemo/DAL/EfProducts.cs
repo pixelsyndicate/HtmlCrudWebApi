@@ -1,11 +1,8 @@
-using System.ComponentModel.DataAnnotations;
-using webdemo.Models;
+using System.Data.Entity;
 
 namespace webdemo.DAL
 {
-    using System;
-    using System.Data.Entity;
-    using System.Linq;
+
 
     public class EfProducts : DbContext
     {
@@ -28,17 +25,6 @@ namespace webdemo.DAL
 
     }
 
-    public class ProductEntity
-    {
-        [Key]
-        public int ProductId { get; set; }
-        [MaxLength(150)]
-        public string ProductName { get; set; }
-        public DateTime? IntroductionDate { get; set; }
-        public string Url { get; set; }
-
-        public double? Price { get; set; }
-    }
     //public class MyEntity
     //{
     //    public int Id { get; set; }
