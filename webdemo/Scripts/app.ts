@@ -118,7 +118,7 @@ function PTCController($scope, $http) {
 
         vm.product = initEntity();
         setUIState(pageMode.ADD);
-        
+
     }
 
     // help our the add method get good starter data
@@ -161,7 +161,13 @@ function PTCController($scope, $http) {
     }
 
     function saveClick() {
-        saveData();
+        // add validation checks
+        if (vm.productForm.$valid) {
+            vm.productForm.$setPristine(); // reset form internal fields to a valid state
+            saveData();
+        } else {
+            vm.uiState.isMessageAreaVisible = true;
+        }
     }
 
     function saveData() {
@@ -176,14 +182,16 @@ function PTCController($scope, $http) {
             updateData();
         }
 
+        // dont need this now. have client side validation
+        // AFTER ACTION VALIDATION - only use to react to serverside validation.
         // after action, see if there was a problem. else set to LIST
-        if (vm.uiState.mode === pageMode.EXCEPTION || vm.uiState.mode === pageMode.VALIDATION) {
-            // check for validation message
-            setUIState(vm.uiState.mode);
-        } else {
-            // when go back to page, by default display a list
-            setUIState(pageMode.LIST);
-        }
+        //if (vm.uiState.mode === pageMode.EXCEPTION || vm.uiState.mode === pageMode.VALIDATION) {
+        //    // check for validation message
+        //    setUIState(vm.uiState.mode);
+        //} else {
+        //    // when go back to page, by default display a list
+        //    setUIState(pageMode.LIST);
+        //}
 
 
     }
