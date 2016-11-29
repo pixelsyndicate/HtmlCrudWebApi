@@ -1,9 +1,14 @@
 /// <reference path="typings/jquery/jquery.d.ts" />
 function PTCController($scope, $http) {
+    // the $parameters are extensions we are injecting during the constuctor
+    // and are used in various ways.
+    // $scope is our viewmodel
     var vm = $scope;
+    // $http is our webapi access
     var dataService = $http;
+    // our viewmodel contains an object called uiState
     vm.uiState = {};
-    // for all known products
+    // an array called products to hold for all known products
     vm.products = [];
     // for single selected product
     vm.product = {};
@@ -19,10 +24,7 @@ function PTCController($scope, $http) {
     CLICK EVENT HANDLERS
     */
     // expose the click event functions through the Angular $scope
-    vm.addClick = function () {
-        vm.product = initEntity();
-        setUIState(pageMode.ADD);
-    };
+    vm.addClick = function () { vm.product = initEntity(); setUIState(pageMode.ADD); };
     vm.cancelClick = function () { setUIState(pageMode.LIST); };
     vm.editClick = function (id) { get(id); };
     vm.deleteClick = function (id) { deleteData(id); };
@@ -175,7 +177,7 @@ function PTCController($scope, $http) {
     function initEntity() {
         return {
             ProductId: 0,
-            ProductName: 'fail',
+            ProductName: '',
             IntroductionDate: new Date().toLocaleDateString(),
             Url: 'http://www.microsoft.com',
             Price: 0.00

@@ -8,6 +8,7 @@
     <script src="Scripts/bootstrap.min.js"></script>
     <script src="Scripts/angular.min.js"></script>
     <script src="Scripts/app.js"></script>
+    <script src="Scripts/dir.js"></script>
     <!--<script src="Scripts/SessionLogic.js"></script>-->
 </head>
 <body ng-controller="PTCController">
@@ -201,16 +202,7 @@
 
             angular.module('ptcApp', [])
                 .controller('PTCController', PTCController)
-                .directive('urlMicrosoft', function () { // add a custom url directive
-                    return {
-                        require: 'ngModel',
-                        link: function (scope, element, attributes, ngModel) {
-                            ngModel.$validators.microsoft = function (value) {
-                                if (value) { return value.indexOf("microsoft") == -1; }
-                            }
-                        }
-                    };
-                });
+                .directive('urlMicrosoft', urlMicrosoft);
 
             // some bootstrap fun
             $('[data-toggle="tooltip"]').tooltip();
