@@ -10,6 +10,18 @@
     <script src="Scripts/app.js"></script>
     <script src="Scripts/dir.js"></script>
     <!--<script src="Scripts/SessionLogic.js"></script>-->
+    <style>
+        .base-class {
+            font-size: .6em;
+            transition: all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
+        }
+
+            .base-class.my-class {
+                color: red;
+                font-size: 1.2em;
+            }
+    </style>
+
 </head>
 <body ng-controller="PTCController">
 
@@ -19,25 +31,25 @@
         <div class="container">
             <!-- ** PAGE TITLE AREA ** -->
             <div class="row">
-                <div class="col-sm-6">
+                <div class="col-sm-8">
                     <h2>Html WebApi and Angular</h2>
                 </div>
             </div>
 
-            <!-- ** BEGIN MESSAGE AREA ** -->
+            <div class="row" ng-hide="true">
+                <ul>
+                    <li>isMessageAreaVisible: {{uiState.isMessageAreaVisible}}</li>
+                    <li>isValidationAreaVisible: {{uiState.isValidationAreaVisible}}</li>
+                    <li>productForm.$valid: {{productForm.$valid}}</li>
+                    <li>productForm.$pristine: {{productForm.$pristine}}</li>
+                    <li ng-hide=""></li>
+                </ul>
+            </div>
 
-            <div ng-hide="!uiState.isMessageAreaVisible ||
-                 (productForm.$valid && !productForm.$pristine)" class="row">
-                <!--<div ng-show="uiState.isMessageAreaVisible" class="row">-->
-                <div class="alert alert-danger" role="alert">
-                    <!--<button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span></button>-->
+            <!-- VALIDATION MESSAGE AREA -->
+            <div ng-hide="!uiState.isValidationAreaVisible || (productForm.$valid && !productForm.$pristine)" class="row">
+                <div class="alert alert-warning" role="alert">
                     <ul>
-                        <li ng-repeat="msg in uiState.messages">
-                            {{msg.message}}
-                        </li>
-
-                        <!--show validation error messages-->
                         <li ng-show="productForm.ProductName.$error.required">Product Name is Required.</li>
                         <li ng-show="!productForm.ProductName.$valid">Product Name must have more than 4 characters and less than 150.</li>
 
@@ -49,8 +61,21 @@
 
                         <li ng-show="productForm.Price.$error.required">Price is Required.</li>
                         <li ng-show="!productForm.Price.$valid">Price must be btween $0.01 and $9.999.</li>
+                    </ul>
+                </div>
+            </div>
 
-
+            <!-- ** BEGIN MESSAGE AREA ** -->
+            <div ng-hide="!uiState.isMessageAreaVisible" class="row">
+                <!--<div ng-show="uiState.isMessageAreaVisible" class="row">-->
+                <div class="alert alert-danger" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <ul>
+                        <li ng-repeat="msg in uiState.messages">
+                            {{msg.message}}
+                        </li>
                     </ul>
                     <!--<strong>Warning!</strong> Better check yourself, you're not looking too good.-->
                 </div>
@@ -95,7 +120,8 @@
                             <th>Introduction Date</th>
                             <th>URL</th>
                             <th>Price</th>
-                            <th>Delete</th>
+                            <th>Summary</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -111,11 +137,23 @@
                             <td>{{product.IntroductionDate | date}}</td>
                             <td>{{product.Url}}</td>
                             <td>{{product.Price | currency : "$"}}</td>
+                            <td class="base-class" ng-class="myVar">{{product.Summary}}</td>
                             <td class='pdsa-action-button-column'>
-                                <a href='#' class="btn btn-warning btn-sm"
-                                   data-toggle="tooltip" data-placement="bottom" title="Delete ID:{{product.ProductId}}" ng-click="deleteClick(product.ProductId)">
-                                    <i class="glyphicon glyphicon-trash"></i>
-                                </a>
+                                <div class="col-md-12">
+                                    <a href='#' id="setbtn" tooltip="zoom" ng-click="myVar='my-class'" class="btn btn-sm">
+                                        <i class="glyphicon glyphicon-resize-full"></i>
+                                    </a>
+                                    <a href='#' id="clearbtn" tooltip="reset" ng-click="myVar=''" class="btn btn-sm">
+                                        <i class=" glyphicon glyphicon-resize-small"></i>
+                                    </a>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <a href='#' class="btn btn-warning btn-sm"
+                                       data-toggle="tooltip" data-placement="bottom" title="Delete ID:{{product.ProductId}}" ng-click="deleteClick(product.ProductId)">
+                                        <i class="glyphicon glyphicon-trash"></i>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -131,34 +169,61 @@
                     Product Information
                 </div>
                 <div class="panel-body">
-                    <div class="form-group">
-                        <label for="ProductName">Product Name</label>
-                        <!-- angular validation uses the 'name' and value to determine if is valid. so make id and name the same -->
-                        <input type="text" id="ProductName" name="ProductName"
-                               required
-                               ng-minlength="5"
-                               ng-maxlength="150" class="form-control" ng-model="product.ProductName" />
+                    <div class="has-feedback" ng-class="{ 'has-error': !productForm.ProductName.$valid, 'has-success' : productForm.ProductName.$valid }">
+                        <div class="form-group ">
+                            <label for="ProductName">Product Name</label>
+                            <!-- angular validation uses the 'name' and value to determine if is valid. so make id and name the same -->
+                            <input type="text" id="ProductName" name="ProductName"
+                                   required
+                                   ng-minlength="5"
+                                   ng-maxlength="150" class="form-control" ng-model="product.ProductName" />
+                            <span class="glyphicon form-control-feedback" ng-class="{'glyphicon-ok':productForm.ProductName.$valid, 'glyphicon-warning-sign':!productForm.ProductName.$valid}" aria-hidden="true"></span>
 
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="IntroductionDate">Introduction Date</label>
-                        <input type="text" id="IntroductionDate" name="IntroductionDate"
-                               required
-                               class="form-control" ng-model="product.IntroductionDate" />
+                    <div class="has-feedback" ng-class="{ 'has-error': !productForm.IntroductionDate.$valid, 'has-success' : productForm.IntroductionDate.$valid}">
+                        <div class="form-group">
+                            <label for="IntroductionDate">Introduction Date</label>
+                            <input type="text" id="IntroductionDate" name="IntroductionDate"
+                                   required
+                                   class="form-control" ng-model="product.IntroductionDate" />
+                            <span class="glyphicon form-control-feedback" ng-class="{'glyphicon-ok':productForm.IntroductionDate.$valid, 'glyphicon-warning-sign':!productForm.IntroductionDate.$valid}" aria-hidden="true"></span>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="Url">URL</label>
-                        <input type="text" id="Url" name="Url"
-                               required
-                               url-microsoft
-                               class="form-control" ng-model="product.Url" />
+
+                    <div class="has-feedback" ng-class="{ 'has-error': !productForm.Url.$valid, 'has-success' : productForm.Url.$valid }">
+                        <div class="form-group">
+                            <label for="Url">URL</label>
+                            <input type="text" id="Url" name="Url"
+                                   required
+                                   url-microsoft
+                                   class="form-control" ng-model="product.Url" />
+                            <span class="glyphicon form-control-feedback" ng-class="{'glyphicon-ok':productForm.Url.$valid, 'glyphicon-warning-sign':!productForm.Url.$valid}" aria-hidden="true"></span>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="Price">Price</label>
-                        <input type="number" id="Price" name="Price"
-                               required
-                               min="0.01" max="9999.99"
-                               class="form-control" ng-model="product.Price" />
+
+                    <div class="has-feedback" ng-class="{ 'has-error': !productForm.Price.$valid, 'has-success' : productForm.Price.$valid}">
+                        <div class="form-group">
+                            <label for="Price">Price</label>
+                            <input type="number" id="Price" name="Price"
+                                   required
+                                   min="0.01" max="9999.99"
+                                   class="form-control" ng-model="product.Price" />
+                            <span class="glyphicon form-control-feedback" ng-class="{'glyphicon-ok':productForm.Price.$valid, 'glyphicon-warning-sign':!productForm.Price.$valid}" aria-hidden="true"></span>
+                        </div>
+                    </div>
+
+                    <div class="has-feedback" ng-class="{ 'has-error': !productForm.Summary.$valid, 'has-success' : productForm.Summary.$valid }">
+                        <div class="form-group">
+                            <label for="Summary">Summary</label>
+                            <textarea id="Summary" name="Summary" class="form-control base-class" ng-class="myVar" ng-model="product.Summary"></textarea>
+                            <span class="glyphicon form-control-feedback" ng-class="{'glyphicon-ok':productForm.Summary.$valid, 'glyphicon-warning-sign':!productForm.Summary.$valid}" aria-hidden="true"></span>
+                            <a href='#' id="setbtn" tooltip="zoom" ng-click="myVar='my-class'" class="btn btn-sm">
+                                <i class="glyphicon glyphicon-resize-full"></i>
+                            </a>
+                            <a href='#' id="clearbtn" tooltip="reset" ng-click="myVar=''" class="btn btn-sm">
+                                <i class=" glyphicon glyphicon-resize-small"></i>
+                            </a> </div>
                     </div>
                 </div>
                 <input type="hidden" id="ProductId" name="ProductId" value="{{product.ProductId}}" />

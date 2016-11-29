@@ -2,8 +2,6 @@ using System.Data.Entity;
 
 namespace webdemo.DAL
 {
-
-
     public class EfProducts : DbContext
     {
         // Your context has been configured to use a 'EfProducts' connection string from your application's 
@@ -12,9 +10,10 @@ namespace webdemo.DAL
         // 
         // If you wish to target a different database and/or database provider, modify the 'EfProducts' 
         // connection string in the application configuration file.
-        public EfProducts()
-            : base("name=EfProducts")
+        public EfProducts() : base("name=EfProducts")
         {
+            // initialize the database thorugh EF ... CreateDatabaseIfNotExists<T>
+            Database.SetInitializer(new DemoProductDatabaseInitializer());
         }
 
         // Add a DbSet for each entity type that you want to include in your model. For more information 

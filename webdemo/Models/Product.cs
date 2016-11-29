@@ -10,5 +10,7 @@ namespace webdemo.Models
         public string Url { get; set; }
 
         public double Price { get; set; }
+
+        public string Summary { get; set; }
     }
 }

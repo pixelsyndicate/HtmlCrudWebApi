@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http;
+using System.Web.Http.Description;
 using webdemo.DAL;
 using webdemo.Models;
 using System.Web.Http.ModelBinding;
@@ -18,32 +20,30 @@ namespace webdemo.Controllers
 
         // GET: api/Product
         [HttpGet]
+        [ResponseType(typeof(IList<Product>))]
         public IHttpActionResult Get()
         {
-            IHttpActionResult toReturn = null;
-
-
-            // retry
-            var list = (from p in _repo.GetAll()
-                        select new Product
-                        {
-                            ProductId = p.ProductId,
-                            IntroductionDate = p.IntroductionDate.Value,
-                            ProductName = p.ProductName,
-                            Price = p.Price.Value,
-                            Url = p.Url
-                        }).ToList();
-
-            if (list.Count > 0)
+            IHttpActionResult result = null;
+            var fromDb = _repo.GetAll().Select(p => new Product
             {
-                toReturn = Ok(list);
+                ProductId = p.ProductId,
+                IntroductionDate = p.IntroductionDate.Value,
+                ProductName = p.ProductName,
+                Price = p.Price.Value,
+                Url = p.Url,
+                Summary = p.Summary
+            }).ToList();
+
+            if (fromDb.Count > 0)
+            {
+                result = Ok(fromDb);
             }
             else
             {
-                toReturn = NotFound();
+                result = NotFound();
             }
 
-            return toReturn;
+            return result;
         }
 
         // GET: api/Product/5
@@ -63,6 +63,7 @@ namespace webdemo.Controllers
                 prod.Url = ent.Url;
                 prod.ProductName = ent.ProductName;
                 prod.ProductId = ent.ProductId;
+                prod.Summary = ent.Summary;
                 toReturn = Ok(prod);
             }
             else
@@ -161,23 +162,24 @@ namespace webdemo.Controllers
         {
             bool ret = false;
 
-            ValidationErrors = new ModelStateDictionary();
-
             // add custom validation
             if (product.IntroductionDate < Convert.ToDateTime("1/1/2010"))
             {
-                ValidationErrors.AddModelError("Introduction Date", "Introduction Date Must Be Greater Than 1/1/2010");
+                ModelState.AddModelError("Introduction Date", "Introduction Date Must Be Greater Than 1/1/2010");
             }
 
             // Add more server-side validation here to match
-            // or if using DataAnnotations (like with Entity Objects), you can retrieve the ModelStateDictionary object, 
+            // or if using DataAnnotations (like with Entity Objects), you can retrieve the ModelState (Dictionary) object, 
             //get the errors from the annotations and add those to the ValidationErrors collection property.
 
-
+            ValidationErrors = ModelState;
+            return ModelState.IsValid;
             ret = (ValidationErrors.Count == 0);
 
             return ret;
         }
+
+
     }
 }
 

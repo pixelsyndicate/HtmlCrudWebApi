@@ -153,6 +153,7 @@
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\ProductController.cs" />
+    <Compile Include="DAL\DemoProductDatabaseInitializer.cs" />
     <Compile Include="DAL\EfProducts.cs" />
     <Compile Include="DAL\ProductEntity.cs" />
     <Compile Include="DAL\ProductRepository.cs" />
@@ -166,6 +167,18 @@
     <Compile Include="Migrations\201611281442574_RemoveNullables.cs" />
     <Compile Include="Migrations\201611281442574_RemoveNullables.Designer.cs">
       <DependentUpon>201611281442574_RemoveNullables.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201611291914397_AddedSummaryField.cs" />
+    <Compile Include="Migrations\201611291914397_AddedSummaryField.Designer.cs">
+      <DependentUpon>201611291914397_AddedSummaryField.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201611292231450_AddedSummaryField1.cs" />
+    <Compile Include="Migrations\201611292231450_AddedSummaryField1.Designer.cs">
+      <DependentUpon>201611292231450_AddedSummaryField1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201611292232551_removedJsonFilter.cs" />
+    <Compile Include="Migrations\201611292232551_removedJsonFilter.Designer.cs">
+      <DependentUpon>201611292232551_removedJsonFilter.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Product.cs" />
@@ -183,6 +196,15 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201611281442574_RemoveNullables.resx">
       <DependentUpon>201611281442574_RemoveNullables.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201611291914397_AddedSummaryField.resx">
+      <DependentUpon>201611291914397_AddedSummaryField.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201611292231450_AddedSummaryField1.resx">
+      <DependentUpon>201611292231450_AddedSummaryField1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201611292232551_removedJsonFilter.resx">
+      <DependentUpon>201611292232551_removedJsonFilter.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

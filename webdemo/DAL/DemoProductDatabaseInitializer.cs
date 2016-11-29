@@ -1,78 +1,17 @@
-ï»¿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+using System.Data.Entity;
+using System.Data.Entity.Migrations;
 using webdemo.Models;
 
 namespace webdemo.DAL
 {
-    public class ProductRepository
+    public class DemoProductDatabaseInitializer : CreateDatabaseIfNotExists<EfProducts>
     {
-        private readonly EfProducts _dbProducts;
-
-        public ProductRepository(EfProducts dbProducts)
+        protected override void Seed(EfProducts context)
         {
-            _dbProducts = dbProducts;
-        }
-
-
-        public bool Exists(int id)
-        {
-            var foundRec = _dbProducts.Products.Find(id);
-            return foundRec != null;
-        }
-
-        public bool DeleteProduct(int id)
-        {
-            using (var db = new EfProducts())
-            {
-                db.Products.Remove(db.Products.Find(id));
-                return db.SaveChanges() >= 1;
-            }
-        }
-
-        public bool Add(Product product)
-        {
-            var toInsert = new ProductEntity()
-            {
-                IntroductionDate = product.IntroductionDate,
-                Price = product.Price,
-                ProductId = product.ProductId,
-                ProductName = product.ProductName,
-                Url = product.Url
-            };
-
-            _dbProducts.Products.Add(toInsert);
-            var changesMade = _dbProducts.SaveChanges();
-            return (changesMade >= 1);
-        }
-
-        public bool Update(Product product)
-        {
-            var id = product.ProductId;
-
-            using (var db = new EfProducts())
-            {
-                var fromDb = db.Products.Find(id);
-
-                fromDb.IntroductionDate = product.IntroductionDate;
-                fromDb.Price = product.Price;
-                fromDb.ProductId = id;
-                fromDb.ProductName = product.ProductName;
-                fromDb.Url = product.Url;
-
-                return db.SaveChanges() >= 1;
-            }
-        }
-
-        public List<ProductEntity> GetAll()
-        {
-            return _dbProducts.Products.ToList();
-
-        }
-
-        private List<Product> CreateMockData()
-        {
+            base.Seed(context);
+            // fill the database with some default data when first created.
             List<Product> sameProducts = new List<Product>
             {
                 new Product
@@ -83,7 +22,7 @@ namespace webdemo.DAL
                     Url = "http://bit.ly/1I8ZqZg",
                     Price = 25.98, Summary = @"In science, if you know what you are doing, you should not be doing it. In engineering, if you do not know what you are doing, you should not be doing it. Of course, you seldom, if ever, see either pure state.
 
-â€”Richard Hamming, The Art of Doing Science and Engineering"
+—Richard Hamming, The Art of Doing Science and Engineering"
                 },
                 new Product
                 {
@@ -94,12 +33,12 @@ namespace webdemo.DAL
                     Price = 15.49, Summary = @"
 How can we design systems when we don't know what we're doing?
 
-The most exciting engineering challenges lie on the boundary of theory and the unknown. Not so unknown that they're hopeless, but not enough theory to predict the results of our decisions. Systems at this boundary often rely on emergent behavior â€” high-level effects that arise indirectly from low-level interactions.
+The most exciting engineering challenges lie on the boundary of theory and the unknown. Not so unknown that they're hopeless, but not enough theory to predict the results of our decisions. Systems at this boundary often rely on emergent behavior — high-level effects that arise indirectly from low-level interactions.
 
 When designing at this boundary, the challenge lies not in constructing the system, but in understanding it. In the absence of theory, we must develop an intuition to guide our decisions. The design process is thus one of exploration and discovery.
 
 
-How do we explore? If you move to a new city, you might learn the territory by walking around. Or you might peruse a map. But far more effective than either is both together â€” a street-level experience with higher-level guidance.
+How do we explore? If you move to a new city, you might learn the territory by walking around. Or you might peruse a map. But far more effective than either is both together — a street-level experience with higher-level guidance.
 
 Likewise, the most powerful way to gain insight into a system is by moving between levels of abstraction. Many designers do this instinctively. But it's easy to get stuck on the ground, experiencing concrete systems with no higher-level view. It's also easy to get stuck in the clouds, working entirely with abstract equations or aggregate statistics.
 
@@ -115,7 +54,7 @@ I believe that an essential skill of the modern system designer will be using th
                     IntroductionDate = Convert.ToDateTime("08/28/2015"),
                     Url = "http://bit.ly/1j2dcrj",
                     Price = 30.24, Summary = @"
-We'll start with an in-depth example â€” designing the control system for a simple car simulation. Our goal is to write a set of rules that allows the car to navigate roads, such as the one to the right.
+We'll start with an in-depth example — designing the control system for a simple car simulation. Our goal is to write a set of rules that allows the car to navigate roads, such as the one to the right.
 
 
 
@@ -148,10 +87,8 @@ To the right is an algorithm which encodes this strategy.
 "
                 }
             };
-
-            return sameProducts;
+            sameProducts.ForEach(a => context.Products.AddOrUpdate(new ProductEntity { IntroductionDate = a.IntroductionDate, Price = a.Price, ProductId = a.ProductId, ProductName = a.ProductName, Url = a.Url }));
+            context.SaveChanges();
         }
-
-
     }
 }
