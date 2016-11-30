@@ -51,11 +51,11 @@ function PTCController($scope, $http) {
 
     // add validation check on form before saveData()
     viewModel.saveClick = () => {
-        if (!viewModel.productForm.$valid) {
-            viewModel.uiState.isValidationAreaVisible = true;
-        } else {
+        if (viewModel.productForm.$valid) {
             viewModel.productForm.$setPristine();    // reset form internal fields to a valid state
             saveData();
+        } else {
+            viewModel.uiState.isMessageAreaVisible = true;
         }
     };
 
@@ -75,7 +75,6 @@ function PTCController($scope, $http) {
     function initUIState() {
         return {
             mode: pageMode.LIST,
-            isValidationAreaVisible: false,
             isDetailAreaVisible: false,
             isListAreaVisible: false,
             isMessageAreaVisible: false,
@@ -97,7 +96,6 @@ function PTCController($scope, $http) {
                 quikState.isListAreaVisible = true;
                 quikState.isSearchAreaVisible = true;
                 quikState.isMessageAreaVisible = false;
-                quikState.isValidationAreaVisible = false;
                 break;
             case pageMode.ADD:
                 quikState.isDetailAreaVisible = true;
@@ -116,7 +114,7 @@ function PTCController($scope, $http) {
                 quikState.isMessageAreaVisible = true;
                 break;
             case pageMode.VALIDATION:
-                quikState.isValidationAreaVisible = true;
+                quikState.isMessageAreaVisible = true;
                 break;
         }
 
@@ -128,24 +126,11 @@ function PTCController($scope, $http) {
 
     // this inserts or updated based on current $scope.uiState.Mode
     function saveData() {
-
-        switch (viewModel.uiState.mode) {
-
-            case pageMode.ADD:
-                insertData();
-                break;
-
-            case pageMode.EDIT:
-                updateData();
-                break;
-
+        if (viewModel.uiState.mode === pageMode.ADD) {
+            insertData();
+        } else if (viewModel.uiState.mode === pageMode.EDIT) {
+            updateData();
         }
-
-        //if (vm.uiState.mode === pageMode.ADD) {
-        //    insertData();
-        //} else if (vm.uiState.mode === pageMode.EDIT) {
-        //    updateData();
-        //}
     }
 
     function getAll() {
@@ -174,7 +159,7 @@ function PTCController($scope, $http) {
     }
 
     function insertData() {
-        if (validateDate()) {
+        if (isoDate()) {
             webApi.post("/api/Product/", viewModel.product)
                 .then(
                 function (result) {
@@ -182,14 +167,18 @@ function PTCController($scope, $http) {
                     viewModel.products.push(viewModel.product);
                     setUIState(pageMode.LIST);
                 },
-                error => { handleException(error); });
+                error => {  // undo the funky ISO date display
+                    var cleanedDate = viewModel.product.IntroductionDate;
+                    viewModel.product.IntroductionDate = new Date(cleanedDate).toLocaleDateString();
+                    handleException(error);
+                });
         }
     }
 
     function updateData() {
         var p = viewModel.product;
         var ps = viewModel.products;
-        if (validateDate()) {
+        if (isoDate()) {
             webApi.put("/api/Product/" + p.ProductId, p)
                 .then(
                 result => {
@@ -203,9 +192,12 @@ function PTCController($scope, $http) {
                     // update product in the products array in memory
                     ps[index] = viewModel.product;
                     setUIState(pageMode.LIST);
-                },// if http status code doesn't lie betwwn 200 and 299, this will run.
+                },
                 error => {
                     // if http status code doesn't lie betwwn 200 and 299, this will run.
+                    // undo the funky ISO date display
+                    var cleanedDate = p.IntroductionDate;
+                    p.IntroductionDate = new Date(cleanedDate).toLocaleDateString();
                     handleException(error);
                 });
         }
@@ -237,16 +229,16 @@ function PTCController($scope, $http) {
     }
 
 
-    function validateDate() {
+    function isoDate() {
         var ret = true;
-        var p = viewModel.product;
         // fix up the date (assume is actually a date) to correct date to UTC (due to JSON formatting)
-        if (p.IntroductionDate != null) {
-            var cleanedDate = p.IntroductionDate.replace(/\u200E/g, "");
-            p.IntroductionDate = new Date(cleanedDate).toISOString();
+        if (viewModel.product.IntroductionDate != null) {
+            var cleanedDate = viewModel.product.IntroductionDate.replace(/\u200E/g, "");
+            viewModel.product.IntroductionDate = new Date(cleanedDate).toISOString();
 
             // we may have just changed it, so look again.
-            if (p.IntroductionDate == null) {
+            if (viewModel.product.IntroductionDate == null) {
+
                 viewModel.uiState.mode = pageMode.VALIDATION;
                 ret = false;
             }
@@ -255,27 +247,42 @@ function PTCController($scope, $http) {
         return ret;
     }
 
+    function addValidationMessage(prop, msg) {
+        viewModel.uiState.messages.push({ property: prop, message: msg });
+    }
 
+    function addValidationMessages(errors) {
+        for (var key in errors) {
+            if (errors.hasOwnProperty(key)) {
+                for (let i = 0; i < errors[key].length; i++) {
+                    addValidationMessage(key, errors[key][i]);
+                }
+            }
+        }
+    }
 
     // if http status code doesn't lie betwwn 200 and 299, this will run.
     function handleException(error) {
-        // get error information
-        var msg = {
-            property: error.status,
-            message: error.statusText
-        };
 
-        // add any additional error text to the message
-        if (error.data != null && error.data != undefined) {
-            msg.message += ' - ' + error.data.ExceptionMessage;
+        // clear the message array
+        viewModel.uiState.messages = [];
+
+        // sort the errors by http results
+        switch (error.status) {
+            case 400: // 'Bad Request'
+                addValidationMessages(error.data.ModelState);
+                break;
+            case 404: // 'Not Found'
+                addValidationMessage('product', "The product you were requesting could not be found");
+                break;
+            case 500: // 'Internal Error'
+                addValidationMessage('product', `Status: ${error.status} - Error Message: ${error.statusText}`);
+                break;
+
+            default:
         }
 
-        // reset the array and add the new error messages
-        viewModel.uiState.messages = [];
-        viewModel.uiState.messages.push(msg);
-
-        // set the UI state to Exception for Validation so we can affect the layout
-        setUIState(pageMode.EXCEPTION);
+        viewModel.uiState.isMessageAreaVisible = (viewModel.uiState.messages.length > 0);
     }
 
 }

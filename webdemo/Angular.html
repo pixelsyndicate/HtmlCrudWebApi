@@ -36,18 +36,21 @@
                 </div>
             </div>
 
+            <!--set this to ng-hide="false" when you want to debug some states.-->
             <div class="row" ng-hide="true">
                 <ul>
                     <li>isMessageAreaVisible: {{uiState.isMessageAreaVisible}}</li>
-                    <li>isValidationAreaVisible: {{uiState.isValidationAreaVisible}}</li>
                     <li>productForm.$valid: {{productForm.$valid}}</li>
                     <li>productForm.$pristine: {{productForm.$pristine}}</li>
-                    <li ng-hide=""></li>
+                    <li>uiState.mode: {{uiState.mode}}</li>
+                    <li ng-repeat="msg in uiState.messages">
+                        {{msg.property}}  {{msg.message}}
+                    </li>
                 </ul>
             </div>
 
-            <!-- VALIDATION MESSAGE AREA -->
-            <div ng-hide="!uiState.isValidationAreaVisible || (productForm.$valid && !productForm.$pristine)" class="row">
+            <!-- ** BEGIN MESSAGE AREA ** -->
+            <div ng-hide="!uiState.isMessageAreaVisible || (productForm.$valid && !productForm.$pristine)" class="row">
                 <div class="alert alert-warning" role="alert">
                     <ul>
                         <li ng-show="productForm.ProductName.$error.required">Product Name is Required.</li>
@@ -61,25 +64,15 @@
 
                         <li ng-show="productForm.Price.$error.required">Price is Required.</li>
                         <li ng-show="!productForm.Price.$valid">Price must be btween $0.01 and $9.999.</li>
-                    </ul>
-                </div>
-            </div>
 
-            <!-- ** BEGIN MESSAGE AREA ** -->
-            <div ng-hide="!uiState.isMessageAreaVisible" class="row">
-                <!--<div ng-show="uiState.isMessageAreaVisible" class="row">-->
-                <div class="alert alert-danger" role="alert">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                    <ul>
+                        <!--For Server Side Validation-->
                         <li ng-repeat="msg in uiState.messages">
                             {{msg.message}}
                         </li>
                     </ul>
-                    <!--<strong>Warning!</strong> Better check yourself, you're not looking too good.-->
                 </div>
             </div>
+
 
             <!-- ** BEGIN SEARCH AREA ** -->
             <div ng-show="uiState.isSearchAreaVisible" class="panel panel-primary">
@@ -223,7 +216,8 @@
                             </a>
                             <a href='#' id="clearbtn" tooltip="reset" ng-click="myVar=''" class="btn btn-sm">
                                 <i class=" glyphicon glyphicon-resize-small"></i>
-                            </a> </div>
+                            </a>
+                        </div>
                     </div>
                 </div>
                 <input type="hidden" id="ProductId" name="ProductId" value="{{product.ProductId}}" />
@@ -269,14 +263,14 @@
                 .controller('PTCController', PTCController)
                 .directive('urlMicrosoft', urlMicrosoft);
 
-            // some bootstrap fun
-            $('[data-toggle="tooltip"]').tooltip();
+
 
         })();
 
 
         $(function () {
-
+            // some bootstrap fun
+            $('[data-toggle="tooltip"]').tooltip();
         });
 
     </script>
