@@ -37,22 +37,25 @@
             </div>
 
             <!--set this to ng-hide="false" when you want to debug some states.-->
-            <div class="row" ng-hide="true">
-                <ul>
+            <div class="row" ng-hide="false">
+                <ul class="text-info">
+                    <li ng-repeat="msg in uiState.messages">
+                        {{msg.property}}  {{msg.message}}
+                    </li>
                     <li>isMessageAreaVisible: {{uiState.isMessageAreaVisible}}</li>
                     <li>productForm.$valid: {{productForm.$valid}}</li>
                     <li>productForm.$pristine: {{productForm.$pristine}}</li>
                     <li>uiState.mode: {{uiState.mode}}</li>
-                    <li ng-repeat="msg in uiState.messages">
-                        {{msg.property}}  {{msg.message}}
-                    </li>
+
                 </ul>
             </div>
 
-            <!-- ** BEGIN MESSAGE AREA ** -->
+            <!-- ** BEGIN MESSAGE AREA **
+            hide this message box - if the form is valid and it's been changed by human hands OR its not specifically being shown  -->
             <div ng-hide="!uiState.isMessageAreaVisible || (productForm.$valid && !productForm.$pristine)" class="row">
-                <div class="alert alert-warning" role="alert">
-                    <ul>
+                <div class="alert " ng-class="{ 'alert-warning': !uiState.mode != 'Exception', 'alert-danger' : uiState.mode == 'Exception' }" role="alert">
+                    <!--For Server Side Validation-->
+                    <ul ng-hide="uiState.mode == 'Exception'">
                         <li ng-show="productForm.ProductName.$error.required">Product Name is Required.</li>
                         <li ng-show="!productForm.ProductName.$valid">Product Name must have more than 4 characters and less than 150.</li>
 
@@ -65,7 +68,10 @@
                         <li ng-show="productForm.Price.$error.required">Price is Required.</li>
                         <li ng-show="!productForm.Price.$valid">Price must be btween $0.01 and $9.999.</li>
 
-                        <!--For Server Side Validation-->
+                        <li ng-repeat="msg in uiState.messages">{{msg.message}}</li>
+                    </ul>
+                    <!--For Server Side Error Display -->
+                    <ul ng-show="uiState.mode == 'Exception'">
                         <li ng-repeat="msg in uiState.messages">
                             {{msg.message}}
                         </li>
@@ -105,7 +111,7 @@
 
             <!-- ** BEGIN LIST AREA ** -->
             <div ng-show="uiState.isListAreaVisible" class="table-responsive">
-                <table id="productTable" class="table table-bordered table-condensed table-striped">
+                <table id="productTable" class="table table-condensed table-striped">
                     <thead>
                         <tr>
                             <th>Edit</th>
@@ -120,7 +126,7 @@
                     <tbody>
                         <tr ng-repeat="product in products">
                             <td class='pdsa-action-button-column'>
-                                <a href='#' class="btn btn-default btn-sm"
+                                <a href='#' class="btn btn-default"
                                    data-toggle="tooltip" data-placement="bottom" title="Edit ID:{{product.ProductId}}"
                                    ng-click="editClick(product.ProductId)">
                                     <i class="glyphicon glyphicon-edit"></i>
@@ -130,14 +136,14 @@
                             <td>{{product.IntroductionDate | date}}</td>
                             <td>{{product.Url}}</td>
                             <td>{{product.Price | currency : "$"}}</td>
-                            <td class="base-class" ng-class="myVar">{{product.Summary}}</td>
+                            <td class="base-class" ng-class="zoomArea">{{product.Summary}}</td>
                             <td class='pdsa-action-button-column'>
                                 <div class="col-md-12">
-                                    <a href='#' id="setbtn" tooltip="zoom" ng-click="myVar='my-class'" class="btn btn-sm">
-                                        <i class="glyphicon glyphicon-resize-full"></i>
+                                    <a href='#' id="setbtn" name="setbtn" title="Zoom In" ng-click="zoomArea='my-class'" class="btn btn-sm">
+                                        <i class="glyphicon glyphicon-zoom-in"></i>
                                     </a>
-                                    <a href='#' id="clearbtn" tooltip="reset" ng-click="myVar=''" class="btn btn-sm">
-                                        <i class=" glyphicon glyphicon-resize-small"></i>
+                                    <a href='#' id="clearbtn" name="clearbtn" title="Reset Zoom" ng-click="zoomArea=''" class="btn btn-sm">
+                                        <i class="glyphicon glyphicon-zoom-out"></i>
                                     </a>
                                 </div>
 

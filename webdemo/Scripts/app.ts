@@ -5,7 +5,7 @@ function PTCController($scope, $http) {
     // the $parameters are extensions we are injecting during the constuctor
     // and are used in various ways.
     // $scope is our viewmodel
-    var viewModel = $scope;
+    var vm = $scope;
     // $http is our webapi access
     var webApi = $http;
 
@@ -19,9 +19,9 @@ function PTCController($scope, $http) {
     };
 
     // flesh out the viewmodel some more.
-    viewModel.uiState = {};
-    viewModel.product = {};
-    viewModel.products = [];
+    vm.uiState = {};
+    vm.product = {};
+    vm.products = [];
 
     // our viewmodel contains an object called uiState for 
     // an array called products to hold for all known products
@@ -35,27 +35,18 @@ function PTCController($scope, $http) {
     ** expose the click event functions through the Angular $scope
     **/
 
-    viewModel.addClick = () => {
-        viewModel.product = initEntity();
-        setUIState(pageMode.ADD);
-    };
-    viewModel.cancelClick = () => {
-        setUIState(pageMode.LIST);
-    };
-    viewModel.editClick = (id: number) => {
-        get(id);
-    };
-    viewModel.deleteClick = (id: number) => {
-        deleteData(id);
-    };
+    vm.addClick = () => { vm.product = initEntity(); };
+    vm.cancelClick = () => { setUIState(pageMode.LIST); };
+    vm.editClick = (id: number) => { get(id); };
+    vm.deleteClick = (id: number) => { deleteData(id); };
 
     // add validation check on form before saveData()
-    viewModel.saveClick = () => {
-        if (viewModel.productForm.$valid) {
-            viewModel.productForm.$setPristine();    // reset form internal fields to a valid state
+    vm.saveClick = () => {
+        if (vm.productForm.$valid) {
+            vm.productForm.$setPristine();    // reset form internal fields to a valid state
             saveData();
         } else {
-            viewModel.uiState.isMessageAreaVisible = true;
+            vm.uiState.isMessageAreaVisible = true;
         }
     };
 
@@ -63,7 +54,7 @@ function PTCController($scope, $http) {
 
     /* set default UiState, get all products */
     function init() {
-        viewModel.uiState = initUIState(); // first full object injection.
+        vm.uiState = initUIState(); // first full object injection.
         setUIState(pageMode.LIST);
 
         // get all the products
@@ -85,7 +76,7 @@ function PTCController($scope, $http) {
 
     function setUIState(state) {
 
-        const quikState = viewModel.uiState;
+        const quikState = vm.uiState;
         // store the state 
         quikState.mode = state;
 
@@ -126,85 +117,83 @@ function PTCController($scope, $http) {
 
     // this inserts or updated based on current $scope.uiState.Mode
     function saveData() {
-        if (viewModel.uiState.mode === pageMode.ADD) {
+        if (vm.uiState.mode === pageMode.ADD) {
             insertData();
-        } else if (viewModel.uiState.mode === pageMode.EDIT) {
+        } else if (vm.uiState.mode === pageMode.EDIT) {
             updateData();
         }
     }
 
     function getAll() {
 
-        viewModel.uiState.isLoading = true;
+        vm.uiState.isLoading = true;
         // .then(validResponseCallback, errorResponseCallback) is async
         webApi.get("/api/Product/")
-            .then(result => {
-                viewModel.products = result.data;
-            }, error => { handleException(error); })
-            .finally(() => { viewModel.uiState.isLoading = false; });
+            .then(resolveHandler => {
+                vm.products = resolveHandler.data;
+            }, rejectHandler => { handleException(rejectHandler); })
+            .finally(() => { vm.uiState.isLoading = false; });
     }
 
     function get(id: number) {
-        viewModel.uiState.isLoading = true;
+        vm.uiState.isLoading = true;
 
         webApi.get("/api/Product/" + id)
             .then(response => {
-                viewModel.product = response.data;
-                viewModel.product.IntroductionDate = new Date(viewModel.product.IntroductionDate).toLocaleDateString();
+                vm.product = response.data;
+                vm.product.IntroductionDate = new Date(vm.product.IntroductionDate).toLocaleDateString();
                 setUIState(pageMode.EDIT);
             },
             // called asynchronously if an error occurs or server returns response with an error status.
             error => { handleException(error); })
-            .finally(() => { viewModel.uiState.isLoading = false; });
+            .finally(() => { vm.uiState.isLoading = false; });
     }
 
     function insertData() {
         if (isoDate()) {
-            webApi.post("/api/Product/", viewModel.product)
+            webApi.post("/api/Product/", vm.product)
                 .then(
                 function (result) {
-                    viewModel.product = result.data;
-                    viewModel.products.push(viewModel.product);
+                    vm.product = result.data;
+                    vm.products.push(vm.product);
                     setUIState(pageMode.LIST);
                 },
                 error => {  // undo the funky ISO date display
-                    var cleanedDate = viewModel.product.IntroductionDate;
-                    viewModel.product.IntroductionDate = new Date(cleanedDate).toLocaleDateString();
+                    var cleanedDate = vm.product.IntroductionDate;
+                    vm.product.IntroductionDate = new Date(cleanedDate).toLocaleDateString();
                     handleException(error);
                 });
         }
     }
 
     function updateData() {
-        var p = viewModel.product;
-        var ps = viewModel.products;
         if (isoDate()) {
-            webApi.put("/api/Product/" + p.ProductId, p)
+            webApi.put("/api/Product/" + vm.product.ProductId, vm.product)
                 .then(
                 result => {
                     // update the product object in memory
-                    p = result.data;
+                    vm.product = result.data;
 
                     // get the index of this particular object as it sits in the local array
-                    var prodId = p.ProductId;
-                    var index = ps.map(function (x) { return x.ProductId; }).indexOf(prodId);
+                    var prodId = vm.product.ProductId;
+                    var index = vm.products.map(function (x) { return x.ProductId; }).indexOf(prodId);
 
                     // update product in the products array in memory
-                    ps[index] = viewModel.product;
+                    vm.products[index] = vm.product;
                     setUIState(pageMode.LIST);
                 },
                 error => {
                     // if http status code doesn't lie betwwn 200 and 299, this will run.
                     // undo the funky ISO date display
-                    var cleanedDate = p.IntroductionDate;
-                    p.IntroductionDate = new Date(cleanedDate).toLocaleDateString();
+                    var cleanedDate = vm.product.IntroductionDate;
+                    vm.product.IntroductionDate = new Date(cleanedDate).toLocaleDateString();
                     handleException(error);
                 });
         }
     }
 
     function deleteData(id: number) {
-        var ps = viewModel.products;
+        var ps = vm.products;
         if (confirm("Delete this Product?")) {
             webApi.delete("/api/Product/" + id).then(result => {
                 // remove from product array, -or- we would need to refresh from the DB.
@@ -218,6 +207,7 @@ function PTCController($scope, $http) {
 
     // help our the add method get good starter data
     function initEntity() {
+        setUIState(pageMode.ADD);
         return {
             ProductId: 0,
             ProductName: '',
@@ -232,14 +222,14 @@ function PTCController($scope, $http) {
     function isoDate() {
         var ret = true;
         // fix up the date (assume is actually a date) to correct date to UTC (due to JSON formatting)
-        if (viewModel.product.IntroductionDate != null) {
-            var cleanedDate = viewModel.product.IntroductionDate.replace(/\u200E/g, "");
-            viewModel.product.IntroductionDate = new Date(cleanedDate).toISOString();
+        if (vm.product.IntroductionDate != null) {
+            var cleanedDate = vm.product.IntroductionDate.replace(/\u200E/g, "");
+            vm.product.IntroductionDate = new Date(cleanedDate).toISOString();
 
             // we may have just changed it, so look again.
-            if (viewModel.product.IntroductionDate == null) {
+            if (vm.product.IntroductionDate == null) {
 
-                viewModel.uiState.mode = pageMode.VALIDATION;
+                vm.uiState.mode = pageMode.VALIDATION;
                 ret = false;
             }
         }
@@ -247,9 +237,7 @@ function PTCController($scope, $http) {
         return ret;
     }
 
-    function addValidationMessage(prop, msg) {
-        viewModel.uiState.messages.push({ property: prop, message: msg });
-    }
+    function addValidationMessage(prop: string, msg: string) { vm.uiState.messages.push({ property: prop, message: msg }); }
 
     function addValidationMessages(errors) {
         for (var key in errors) {
@@ -265,7 +253,7 @@ function PTCController($scope, $http) {
     function handleException(error) {
 
         // clear the message array
-        viewModel.uiState.messages = [];
+        vm.uiState.messages = [];
 
         // sort the errors by http results
         switch (error.status) {
@@ -273,16 +261,18 @@ function PTCController($scope, $http) {
                 addValidationMessages(error.data.ModelState);
                 break;
             case 404: // 'Not Found'
+                setUIState(pageMode.EXCEPTION);
                 addValidationMessage('product', "The product you were requesting could not be found");
                 break;
             case 500: // 'Internal Error'
+                setUIState(pageMode.EXCEPTION);
                 addValidationMessage('product', `Status: ${error.status} - Error Message: ${error.statusText}`);
                 break;
 
             default:
         }
 
-        viewModel.uiState.isMessageAreaVisible = (viewModel.uiState.messages.length > 0);
+        vm.uiState.isMessageAreaVisible = (vm.uiState.messages.length > 0);
     }
 
 }
