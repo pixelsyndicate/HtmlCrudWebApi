@@ -9,6 +9,9 @@ using System.Web.Http.ModelBinding;
 namespace webdemo.Controllers
 {
     //[EnableCors(origins: "http://localhost:62271", headers: "*", methods: "*")]
+    /// <summary>
+    /// 
+    /// </summary>
     public class ProductController : ApiController
     {
         private readonly ProductRepository _repo = new ProductRepository(new EfProducts());
@@ -19,6 +22,10 @@ namespace webdemo.Controllers
         public ModelStateDictionary ValidationErrors { get; set; }
 
         // GET: api/Product
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         [ResponseType(typeof(IList<Product>))]
         public IHttpActionResult Get()
@@ -47,6 +54,11 @@ namespace webdemo.Controllers
         }
 
         // GET: api/Product/5
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet()]
         public IHttpActionResult Get(int id)
         {
@@ -74,6 +86,11 @@ namespace webdemo.Controllers
             return toReturn;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="product"></param>
+        /// <returns></returns>
         [HttpPost]
         public IHttpActionResult Post(Product product)
         {
@@ -109,6 +126,12 @@ namespace webdemo.Controllers
             return ret;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="product"></param>
+        /// <returns></returns>
         [HttpPut]
         public IHttpActionResult Put(int id, Product product)
         {
@@ -138,6 +161,11 @@ namespace webdemo.Controllers
             return ret;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpDelete]
         public IHttpActionResult Delete(int id)
         {
@@ -158,6 +186,11 @@ namespace webdemo.Controllers
             return ret;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="product"></param>
+        /// <returns></returns>
         protected bool Validate(Product product)
         {
             bool ret = false;
@@ -178,8 +211,7 @@ namespace webdemo.Controllers
 
             return ret;
         }
-
-
+        
     }
 }
 

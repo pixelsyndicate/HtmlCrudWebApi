@@ -30,8 +30,10 @@ namespace webdemo.App_Start
             
             try
             {
-                config.Services.Replace(typeof(IDocumentationProvider),
-                    new XmlCommentDocumentationProvider(HttpContext.Current.Server.MapPath("~/bin/webdemo.XML")));
+                config.Services
+                    .Replace(typeof(IDocumentationProvider), 
+                    new XmlCommentDocumentationProvider(
+                        HttpContext.Current.Server.MapPath("~/bin/webdemo.XML")));
             }
             catch (FileNotFoundException)
             {
