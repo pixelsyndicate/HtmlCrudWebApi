@@ -202,8 +202,19 @@ namespace webdemo.Controllers
             }
 
             // Add more server-side validation here to match
+
+            if (string.IsNullOrWhiteSpace(product.ProductName))
+            {
+                ModelState.AddModelError("ProductName", "Product Name must be filled in.");
+            }
+
+            if (string.IsNullOrWhiteSpace(product.Url))
+            {
+                ModelState.AddModelError("Url", "Url must be filled in.");
+            }
+
             // or if using DataAnnotations (like with Entity Objects), you can retrieve the ModelState (Dictionary) object, 
-            //get the errors from the annotations and add those to the ValidationErrors collection property.
+            // get the errors from the annotations and add those to the ValidationErrors collection property.
 
             ValidationErrors = ModelState;
             return ModelState.IsValid;
@@ -211,7 +222,7 @@ namespace webdemo.Controllers
 
             return ret;
         }
-        
+
     }
 }
 

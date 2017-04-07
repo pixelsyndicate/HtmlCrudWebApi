@@ -227,5 +227,41 @@ function PTCController($scope, $http) {
         }
         vm.uiState.isMessageAreaVisible = (vm.uiState.messages.length > 0);
     }
+    // from code-mag may-apr 2016 - extract prorperties from errors, by parsing the JSON object returned from WebAPI
+    function handleAdvancedException(request, message, error) {
+        var msg = '';
+        switch (request.status) {
+            case 500:
+                setUIState(pageMode.EXCEPTION);
+                msg = request.responseJSON.ExceptionMessage;
+                addValidationMessage('product', "Status: " + request.status + " - Error Message: " + request.statusText);
+                break;
+            default:
+                msg = "Status: " + request.status;
+                msg += "\n" + "Error Message: " + request.statusText;
+                break;
+        }
+        alert(msg);
+    }
+    // this method can be used in case 400: to get individual errors from the response
+    function getModelStateErrors(errorText) {
+        var response = null;
+        var errors = [];
+        // convert the error text from ModelState
+        // into a JSON object
+        try {
+            response = JSON.parse(errorText);
+        }
+        catch (e) {
+        }
+        if (response != null) {
+            // extract keys from the ModelState portion
+            for (var key in response.ModelState) {
+                // create list of error messages to display
+                errors.push(response.ModelState[key]);
+            }
+        }
+        return errors;
+    }
 }
 //# sourceMappingURL=app.js.map
