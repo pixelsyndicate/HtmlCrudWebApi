@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Migrations;
@@ -6,8 +5,12 @@ using webdemo.Models;
 
 namespace webdemo.DAL
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class DemoProductDatabaseInitializer : CreateDatabaseIfNotExists<EfProducts>
     {
+        /// <inheritdoc />
         protected override void Seed(EfProducts context)
         {
             base.Seed(context);
