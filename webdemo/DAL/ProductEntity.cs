@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace webdemo.DAL
 {
-    public class ProductEntity
+    public partial class ProductEntity
     {
         [Key, Column(Order = 1), DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ProductId { get; set; }

@@ -1,8 +1,9 @@
 using System.Data.Entity;
+#pragma warning disable 1591
 
 namespace webdemo.DAL
 {
-    public class EfProducts : DbContext
+    public partial class EfProducts : DbContext
     {
         // Your context has been configured to use a 'EfProducts' connection string from your application's 
         // configuration file (App.config or Web.config). By default, this connection string targets the 
@@ -23,10 +24,4 @@ namespace webdemo.DAL
         public virtual DbSet<ProductEntity> Products { get; set; }
 
     }
-
-    //public class MyEntity
-    //{
-    //    public int Id { get; set; }
-    //    public string Name { get; set; }
-    //}
 }
